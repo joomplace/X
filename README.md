@@ -11,6 +11,7 @@ Let's  check it out on `com_example`:
 
 #### Back-end
 File [`/admin/example.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-example_php)
+
 File [`/admin/component.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-component_php)
 
 And from now on it's pretty done deal!
