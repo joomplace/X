@@ -10,59 +10,9 @@ jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
 Let's  check it out on `com_example`:
 
 #### Back-end
-File `/admin/example.php` contents:
-```PHP
-namespace Joomplace\Example\Admin;
+File [`/admin/example.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-example_php)
+File [`/admin/component.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-component_php)
 
-defined('_JEXEC') or die;
-define('DS',DIRECTORY_SEPARATOR);
-
-jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
-
-$component = new Component();
-$component->execute();
-```
-File `/admin/component.php` contents:
-```PHP
-namespace Joomplace\Example\Admin;
-
-defined('_JEXEC') or die;
-
-class Component extends \Joomplace\Library\JooYii\Component{
-
-	/**
-	 * Execute the controller.
-	 *
-	 * @return  boolean  True if controller finished execution, false if the controller did not
-	 *                   finish execution. A controller might return false if some precondition for
-	 *                   the controller to run has not been satisfied.
-	 *
-	 * @since   12.1
-	 * @throws  LogicException
-	 * @throws  RuntimeException
-	 */
-	public function execute(){
-
-		$app = $this->getApplication();
-    $gconfig = \JFactory::getConfig();
-		$input = $this->getInput();
-    $cconfig = \JComponentHelper::getParams($input->get('option'));
-		$namespace = 'Joomplace\\Example\\Admin';
-
-		$controller = $input->getString('controller','list');
-    $task = explode('.',$input->getString('task','index'));
-    $action = $task[0];
-		$input->set('view',$input->getString('view','list'));
-
-		$controllerClass     = $this->getController($namespace.'\\Controller\\'.$controller);
-
-    \Joomplace\Library\JooYii\Helper::callBindedFunction($controllerClass,$action,array($input,$cconfig,$gconfig));
-
-		return true;
-	}
-
-}
-```
 And from now on it's pretty done deal!
 
 Next files structure and content will look like this:
