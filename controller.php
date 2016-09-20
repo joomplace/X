@@ -95,10 +95,25 @@ class Controller
 		return $view->render();
 	}
 
-	public function index($limit = false, $limitstart = 0){
-		$output = $this->render('index', array());
-        echo $output;
-	}
+    public function index($limit = false, $limitstart = 0){
+        $model = $this->getModel();
+        $vars = array();
+        if($model){
+            $state = $model->getState();
+            if($limit !== false){
+                $items = $model->getList($limitstart,$limit);
+            }else{
+                $items = $model->getList();
+            }
+            $pagination = $model->getPagination();
+            $vars = array(
+                'state' => $state,
+                'items' => $items,
+                'pagination' => $pagination,
+            );
+        }
+        echo $this->render($this->getClassName(),$vars);
+    }
 
 	public function proxy($task){
 	    $task = explode('.', $task);
@@ -116,6 +131,85 @@ class Controller
                     echo 'smth went wrong';
                 }
         }
+    }
+
+    public function add(){
+        $this->edit();
+    }
+
+    public function edit(array $cid = array()){
+        $model = $this->getModel();
+        if($cid){
+            $model->load($cid[0]);
+            \JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()).'_EDIT_TITLE'), 'pencil');
+        }else{
+            \JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()).'_NEW_TITLE'), 'pencil-2');
+        }
+        $vars = array(
+            'item' => $model,
+        );
+
+        $key = $model->getKeyName();
+        \JToolbarHelper::apply('apply');
+        \JToolbarHelper::save('save');
+        if($model->$key){
+            \JToolbarHelper::save2copy('save2copy');
+        }
+        \JToolbarHelper::save2new('save2new');
+        \JToolbarHelper::cancel('cancel');
+
+        echo $this->render('form',$vars);
+    }
+
+    public function apply(array $jform, $tonew = false){
+        $model = $this->getModel();
+        $model->save($jform);
+        if(!$tonew){
+            $key = $model->getKeyName();
+            $this->edit(array($model->$key));
+        }else{
+            $this->edit();
+        }
+    }
+
+    public function saveandnew(array $jform){
+        $this->apply($jform, true);
+    }
+
+    public function save2copy(array $jform){
+        $jform['id'] = '';
+        $this->apply($jform);
+    }
+
+    public function save(array $jform){
+        $model = $this->getModel();
+        $model->save($jform);
+        $this->index();
+    }
+
+    public function cancel(){
+        $this->index();
+    }
+
+    public function saveOrderAjax(array $cid, array $order){
+
+        // Sanitize the input
+        \JArrayHelper::toInteger($cid);
+        \JArrayHelper::toInteger($order);
+
+        // Get the model
+        $model = $this->getModel();
+
+        // Save the ordering
+        $return = $model->saveorder($cid, $order);
+
+        if ($return)
+        {
+            echo "1";
+        }
+
+        // Close the application
+        \JFactory::getApplication()->close();
     }
 
 }
