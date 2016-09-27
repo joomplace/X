@@ -15,6 +15,7 @@ class Model extends \JTable
 {
     protected $_db;
     protected $_columns;
+    protected static $_integrety_checked = array();
     /** @var  \Joomla\Registry\Registry $_user_state */
     protected $_user_state;
     protected $_table = '#__jtable_test';
@@ -75,18 +76,7 @@ class Model extends \JTable
              */
             return false;
         }
-        $tables = $db->getTableList();
-        if(!in_array(str_replace('#__',$db->getPrefix(),$this->_table),$tables)){
-            if(!$this->createTable()){
-                /*
-                 * TODO: Raise ERRORs
-                 */
-            }
-        }
-        $this->_columns = $db->getTableColumns($this->_table,false);
-        foreach ($this->_field_defenitions as $field => $defenition){
-            $this->checkField($field, $defenition['mysql_type'], $defenition['nullable'],$defenition['default'],base64_encode(json_encode($defenition)), (isset($defenition['extra'])?$defenition['extra']:''));
-        }
+        $this->checkIntegrety();
         $this->_columns = $db->getTableColumns($this->_table,false);
         parent::__construct($this->_table, $this->_primary_key, $db);
         if(!$this->onAfterInit()){
@@ -95,6 +85,33 @@ class Model extends \JTable
              */
             return false;
         }
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isIntegretyChecked()
+    {
+        return isset(self::$_integrety_checked[$this->_table]);
+    }
+
+    protected function checkIntegrety($force = false){
+        if(!$this->isIntegretyChecked() || $force){
+            $tables = $this->_db->getTableList();
+            if(!in_array(str_replace('#__',$this->_db->getPrefix(),$this->_table),$tables)){
+                if(!$this->createTable()){
+                    /*
+                     * TODO: Raise ERRORs
+                     */
+                }
+            }
+            $this->_columns = $this->_db->getTableColumns($this->_table,false);
+            foreach ($this->_field_defenitions as $field => $defenition){
+                $this->checkField($field, $defenition['mysql_type'], $defenition['nullable'],$defenition['default'],base64_encode(json_encode($defenition)), (isset($defenition['extra'])?$defenition['extra']:''));
+            }
+            self::$_integrety_checked[$this->_table] = true;
+        }
+        return $this->isIntegretyChecked();
     }
 
     protected function checkField($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = ''){
@@ -224,7 +241,7 @@ class Model extends \JTable
         }
         /** @var \JDatabaseDriverMysqli $db */
         $db = $this->_db;
-       $query = $this->getListQuery($conditioner);
+        $query = $this->getListQuery($conditioner);
 
         if($limit){
             //prepare pagination
@@ -286,13 +303,13 @@ class Model extends \JTable
         /** @var \JDatabaseDriverMysqli $db */
         $db = $this->_db;
 
-		// Initialise the query.
-		$query = $db->getQuery(true)
+        // Initialise the query.
+        $query = $db->getQuery(true)
             ->select('*')
             ->from($this->_table);
-		$fields = array_keys($this->getProperties());
+        $fields = array_keys($this->getProperties());
 
-		foreach ($conditioner as $field => $value)
+        foreach ($conditioner as $field => $value)
         {
             // Check that $field is in the table.
             if (!in_array($field, $fields))
@@ -305,6 +322,9 @@ class Model extends \JTable
             }else if(is_string($value)){
                 $query->where($this->_db->quoteName($field) . ' LIKE ' . $this->_db->quote($value));
             }else if(is_array($value)){
+                foreach ($value as &$v){
+                    $v = $this->_db->q($v);
+                }
                 $query->where($this->_db->quoteName($field) . ' IN (' . implode(',', $value) . ')');
             }
         }
