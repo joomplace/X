@@ -67,7 +67,7 @@ class View implements \JView
         return $output;
     }
 
-    public function render($sublayout = ''){
+    public function render($sublayout = '', $vars = array()){
         $path = Loader::findViewLayoutByNS($this->_view_name, $this->getLayout().$sublayout,$this->getNamespace());
         ob_start();
         include $path;
@@ -76,8 +76,8 @@ class View implements \JView
         return $return;
 	}
 
-    public function display($sublayout = ''){
-		echo $this->render($sublayout);
+    public function display($sublayout = '', $vars = array()){
+		echo $this->render($sublayout, $vars);
 	}
 
 }
