@@ -16,21 +16,21 @@ class Controller
 	protected $_model;
 	protected $_models = array();
 
-	protected function getClassParentNameSpacing(){
-		return substr($this->_classreflection->getNamespaceName(), 0, strrpos($this->_classreflection->getNamespaceName(), '\\'));
-	}
-
 	public function __construct()
 	{
+        if(!class_exists('JToolbarHelper')){
+            jimport('includes.toolbar',JPATH_ADMINISTRATOR);
+        }
 		$this->setModel($this->getClassName());
 	}
 
 	protected function getClassName(){
-		if(!$this->_classreflection){
-			$this->_classreflection = new \ReflectionClass($this);
-		}
-		return $this->_classreflection->getShortName();
+		return Helper::getClassName($this);
 	}
+
+    protected function getClassParentNameSpacing(){
+        return Helper::getClassParentNameSpacing($this);
+    }
 
 
 	/**

@@ -13,6 +13,37 @@ use \ReflectionMethod;
 
 class Helper
 {
+    protected static $_classreflections = array();
+
+    public static function getClassName($obj){
+        $class = get_class($obj);
+        if(!isset(self::$_classreflections[$class])){
+            self::saveClassReflection($obj);
+        }
+        return self::$_classreflections[$class]->getShortName();
+    }
+
+    protected static function saveClassReflection($obj){
+        $class = get_class($obj);
+        self::$_classreflections[$class] = new \ReflectionClass($obj);
+    }
+
+    public static function getClassParentNameSpacing($obj){
+        $class = get_class($obj);
+        if(!isset(self::$_classreflections[$class])){
+            self::saveClassReflection($obj);
+        }
+        return substr(self::$_classreflections[$class]->getNamespaceName(), 0, strrpos(self::$_classreflections[$class]->getNamespaceName(), '\\'));
+    }
+
+    public static function getClassNameSpace($obj){
+        $class = get_class($obj);
+        if(!isset(self::$_classreflections[$class])){
+            self::saveClassReflection($obj);
+        }
+        return self::$_classreflections[$class]->getNamespaceName();
+    }
+
     public static function trimText($text, $length = 35){
         if (strlen($text) > $length){
             $array = explode("|||", wordwrap($text, $length, "|||"));

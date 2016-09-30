@@ -67,7 +67,9 @@ class View implements \JView
         return $output;
     }
 
-    public function render($sublayout = '', $vars = array()){
+    public function render($sublayout = '', $local_vars = array()){
+        extract($local_vars);
+        $toolbar = \JToolbar::getInstance();
         $path = Loader::findViewLayoutByNS($this->_view_name, $this->getLayout().$sublayout,$this->getNamespace());
         ob_start();
         include $path;

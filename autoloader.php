@@ -40,21 +40,10 @@ class Loader{
         return false;
     }
 
-    public static function getPathByPsr4($class, $ext = 'php')
+    public static function getPathByPsr4($class, $ext = 'php', $override_logic = false)
     {
-        $files = self::extractExistingPaths($class, $ext);
-
-        /*foreach ($files as $path){
-            $classFilePath = $path . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $classPathParts) . DIRECTORY_SEPARATOR . $classFile;
-            $classFilePath = strtolower($classFilePath);
-
-            if(file_exists($classFilePath) && !class_exists($class, false)){
-                $return = include_once $classFilePath;
-                return (bool) $return;
-            }
-        }*/
-
-        return $files;
+        $paths = self::extractExistingPaths($class, $ext, $override_logic);
+        return $paths;
     }
 
     protected static function extractPaths($class, $ext = 'php', $override_logic = false)
@@ -127,6 +116,13 @@ class Loader{
                     $root = ((isset($is_admin) && $is_admin)?JPATH_ADMINISTRATOR:JPATH_ROOT) . DIRECTORY_SEPARATOR;
                     $return[] = $root . 'templates' .  DIRECTORY_SEPARATOR . $template . DIRECTORY_SEPARATOR . 'html' . ($overridable_element?(DIRECTORY_SEPARATOR . $overridable_element):'') . DIRECTORY_SEPARATOR . $classFile;
                     break;
+                case 'field':
+                    /* getting specific app is pretty overcoding but let it be here, any way if we not in a zone - will return default zone template */
+                    $app = \JFactory::getApplication((isset($is_admin) && $is_admin)?'administrator':'site');
+                    $template = $app->getTemplate();
+                    $root = ((isset($is_admin) && $is_admin)?JPATH_ADMINISTRATOR:JPATH_ROOT) . DIRECTORY_SEPARATOR;
+                    $return[] = $root . 'templates' .  DIRECTORY_SEPARATOR . $template . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . strtolower($classFile) . ($overridable_element?(DIRECTORY_SEPARATOR . $overridable_element):'') . DIRECTORY_SEPARATOR;
+                    break;
                 default:
                     break;
             }
@@ -140,8 +136,8 @@ class Loader{
         return $return;
     }
 
-    protected static function extractExistingPaths($class, $ext = 'php'){
-        $paths = self::extractPaths($class, $ext);
+    protected static function extractExistingPaths($class, $ext = 'php', $override_logic = false){
+        $paths = self::extractPaths($class, $ext, $override_logic);
         foreach ($paths as $i => $path){
             if(!file_exists($path) && !($ext=='/' && is_dir($path))){
                 unset($paths[$i]);
