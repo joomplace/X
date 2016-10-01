@@ -389,7 +389,7 @@ class Model extends \JTable
         ob_start();
         $field_processer = '_renderListControl'.$field;
         if(method_exists($this,$field_processer)){
-            $this->$field_processer();
+            $this->$field_processer($field);
         }else{
             switch ($defenition['type']){
                 case 'user':
