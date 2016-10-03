@@ -212,4 +212,27 @@ class Controller
         \JFactory::getApplication()->close();
     }
 
+    /**
+     * Rest responder | Don't blame me for this
+     *
+     * @param String    $data     data of response
+     * @param boolean   $status   is everything went good
+     *
+     * @since version
+     */
+    protected function respondJson($data, $status){
+        if(!$status){
+            trigger_error("Issue in processing", E_USER_ERROR);
+        }
+        ob_start();
+        $response = new \stdClass();
+        $response->data = $data;
+        $log = ob_get_contents();
+        ob_end_clean();
+        $response->log = $log;
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
 }
