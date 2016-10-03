@@ -195,7 +195,7 @@ class Model extends \JTable
         return $db->setQuery($sql)->execute();
     }
 
-    public function getForm(){
+    public function getForm($form_name = 'jform'){
         $key = $this->_primary_key;
         $name = str_replace('#__',$this->_db->getPrefix() ,$this->_table).($this->$key?('.'.$this->$key):'');
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><form></form>');
@@ -211,7 +211,8 @@ class Model extends \JTable
             if($set_values){
                 $defenition['default'] = $this->$key;
             }
-            $defenition['name'] = 'jform['.$key.']';
+            $defenition['name'] = $form_name.'['.$key.']';
+            $defenition['id'] = $form_name.'_'.$key.'';
             $field = $fieldset->addChild('field');
             foreach ($defenition as $attr => $attr_value){
                 if(in_array($attr,array('option'))){
@@ -223,12 +224,13 @@ class Model extends \JTable
                 }
             }
         }
-        $form = \JForm::getInstance($name, $xml->asXML(), array(), true, false);
+        $form = Form::getInstance($name, $xml->asXML(), array(), true, false);
+        $form::addFieldPath(\Joomplace\Library\JooYii\Loader::getPathByPsr4(Helper::getClassNameSpace($this).'\\Fields','/','field'));
         $this->preprocessForm($form);
         return $form;
     }
 
-    protected function preprocessForm(\JForm $form){
+    protected function preprocessForm(Form $form){
 
     }
 
