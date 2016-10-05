@@ -635,4 +635,14 @@ class Model extends \JTable
         }
     }
 
+    public function reveal(){
+        return array_filter(get_object_vars($this),function($key){
+            if(strpos($key,'_')===0){
+                return false;
+            }else{
+                return true;
+            }
+        },ARRAY_FILTER_USE_KEY);
+    }
+
 }

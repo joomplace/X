@@ -53,6 +53,14 @@ class Controller
 		return $this->_models[$modelname];
 	}
 
+	public function getHelper($helpername = null, $force_new = true)
+	{
+        $helperClass = $this->getClassParentNameSpacing().'\\Helper\\'.$helpername;
+        $helper = new $helperClass();
+
+		return $helper;
+	}
+
 	/**
 	 * @param string $view
 	 *
@@ -80,7 +88,7 @@ class Controller
 		$this->_model = $model;
 	}
 
-	public final function model($task,Array $jform){
+	public final function model($task, Array $jform){
 	    $jform = \JFactory::getApplication()->input->get('jform',array(),'array');
         $model = $this->getModel();
         $model->$task($jform);
@@ -222,6 +230,10 @@ class Controller
      */
     protected function respondJson($data, $status){
         if(!$status){
+            echo "<pre>";
+            print_r($data);
+            echo "</pre>";
+            header('HTTP/1.1 500 Internal Server Error');
             trigger_error("Issue in processing", E_USER_ERROR);
         }
         ob_start();
