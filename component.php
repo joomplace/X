@@ -15,9 +15,10 @@ abstract class Component extends \JControllerBase{
     protected $_controllers = array();
     protected $_default_controller = 'dashboard';
     protected $_default_task = 'index';
+    protected $_namespace = __NAMESPACE__;
 
     protected function preExecution(){
-
+        // pre execution things if needed
     }
 
     /**
@@ -52,7 +53,7 @@ abstract class Component extends \JControllerBase{
         $action = $task[0];
         $input->set('view',$input->getString('view',$controller));
 
-        $controllerClass     = $this->getController(__NAMESPACE__.'\\Controller\\'.$controller);
+        $controllerClass     = $this->getController($this->_namespace.'\\Controller\\'.$controller);
 
         \Joomplace\Library\JooYii\Helper::callBindedFunction($controllerClass,$action,array($input,$json_registry,$cconfig,$gconfig));
 

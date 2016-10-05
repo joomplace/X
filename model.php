@@ -391,7 +391,7 @@ class Model extends \JTable
         ob_start();
         $field_processer = '_renderListControl'.$field;
         if(method_exists($this,$field_processer)){
-            $this->$field_processer($field);
+            $this->$field_processer();
         }else{
             switch ($defenition['type']){
                 case 'user':
@@ -633,6 +633,16 @@ class Model extends \JTable
         }else{
             return false;
         }
+    }
+
+    public function reveal(){
+        return array_filter(get_object_vars($this),function($key){
+            if(strpos($key,'_')===0){
+                return false;
+            }else{
+                return true;
+            }
+        },ARRAY_FILTER_USE_KEY);
     }
 
 }
