@@ -1,27 +1,45 @@
 <?php
 /**
  * @package     Joomplace\Library\JooYii
- * @subpackage
  *
- * @copyright   A copyright
- * @license     A "Slug" license name e.g. GPL2
+ * @copyright   Alexandr Kosarev
+ * @license     GPL2
  */
 
 namespace Joomplace\Library\JooYii;
 
 jimport( 'joomla.database.table' );
 
+/**
+ * Class Model
+ * Both Table and Table Entry description
+ * @package Joomplace\Library\JooYii
+ */
 class Model extends \JTable
 {
-    protected $_db;
+	/** @var  \JDatabaseDriver $_db */
+	protected $_db;
+	/**
+	 * Array of tables columns existing in DB
+	 * @var array $_columns
+	 */
     protected $_columns;
-    protected static $_integrety_checked = array();
+	/**
+	 * Array of tables names as key and state of integrety as value
+	 * @var array $_integrety_checked
+	 */
+	protected static $_integrety_checked = array();
     /** @var  \Joomla\Registry\Registry $_user_state */
     protected $_user_state;
+	/** @var string $_table */
     protected $_table = '#__jtable_test';
     protected $_total = 0;
     protected $_offset = 0;
     protected $_limit = 0;
+	/**
+	 * Used for storing last list results
+	 * @var array $_cache
+	 */
     protected $_cache = array(
         'conditioner' => null,
         'limit' => null,
@@ -29,22 +47,46 @@ class Model extends \JTable
         'list' => null,
         'pagination' => null,
     );
+	/** @var string $_primary_key */
     protected $_primary_key = 'id';
+	/**
+	 * Table and table fields charset
+	 * @var string $_charset
+	 */
     protected $_charset = 'utf8';
+	/**
+	 * Table and table fields collation
+	 * @var string $_collation
+	 */
     protected $_collation = 'unicode_ci';
+	/**
+	 * List of field names as key for field describing arrays
+	 * @var array $_field_defenitions
+	 */
     protected $_field_defenitions = array(
         'id' => array(
+        	/** DB field type */
             'mysql_type' => 'int(10) unsigned',
+	        /** Joomla FormField type */
             'type' => 'hidden',
+	        /** Joomla FormField filter */
             'filter' => 'integer',
+	        /** group for xml purposes */
             'group' => '',
+	        /** XML and FormField fieldset */
             'fieldset' => 'basic',
+	        /** class for input */
             'class' => '',
+	        /** read only; disabled */
             'read_only' => null,
+	        /** can be null */
             'nullable' => false,
+	        /** DB column default value and FormField defaul */
             'default' => null,
+	        /** for DB column purposes */
             'extra' => 'auto_increment',
         ),
+	    /** asset id is used for permissions rules linking */
         'asset_id' => array(
             'mysql_type' => 'int(10) unsigned',
             'type' => 'hidden',
@@ -55,19 +97,26 @@ class Model extends \JTable
             'read_only' => null,
             'nullable' => false,
             'default' => 0,
+	        /** use hide_at to hide from auto genarating in some context */
             'hide_at' => array('list','read','form'),
         ),
     );
+	/**
+	 * Use this field to extend $_field_defenitions
+	 * in final class impementation
+	 * @var array $_fields
+	 */
+	protected $_fields = array(
+    );
 
-    /**
-     * Constructor
-     *
-     * @param   \JDatabaseDriver  &$db  Database connector object
-     *
-     * @since   1.6
-     */
-    public function __construct()
+	/**
+	 * Model constructor.
+	 */
+	public function __construct()
     {
+//	    \JPluginHelper::importPlugin( 'jooyii' );
+//	    $dispatcher = \JEventDispatcher::getInstance();
+//	    $results = $dispatcher->trigger( 'onCdAddedToLibrary', array( &$artist, &$title ) );
         $db = $this->_db = \JFactory::getDbo();
         $this->_charset = ($db->hasUTF8mb4Support())?'utf8mb4':'utf8';
         if(!$this->onBeforeInit()){
@@ -75,6 +124,9 @@ class Model extends \JTable
              * TODO: Raise ERRORs
              */
             return false;
+        }
+        if(isset($this->field_defenitions)){
+	        $this->_field_defenitions = array_merge($this->_field_defenitions, $this->_fields);
         }
         $this->checkIntegrety();
         $this->_columns = $db->getTableColumns($this->_table,false);
@@ -87,15 +139,25 @@ class Model extends \JTable
         }
     }
 
-    /**
-     * @return boolean
-     */
-    public function isIntegretyChecked()
+	/**
+	 * Return table integrety status
+	 * for current model table
+	 *
+	 * @return bool
+	 */
+	public function isIntegretyChecked()
     {
         return isset(self::$_integrety_checked[$this->_table]);
     }
 
-    protected function checkIntegrety($force = false){
+	/**
+	 * Triggers integrety fixing
+	 *
+	 * @param bool $force A flag for forcing recheck
+	 *
+	 * @return bool Integrety check status
+	 */
+	protected function checkIntegrety($force = false){
         if(!$this->isIntegretyChecked() || $force){
             $tables = $this->_db->getTableList();
             if(!in_array(str_replace('#__',$this->_db->getPrefix(),$this->_table),$tables)){
@@ -114,7 +176,17 @@ class Model extends \JTable
         return $this->isIntegretyChecked();
     }
 
-    protected function checkField($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = ''){
+	/**
+	 * Checking columns state
+	 *
+	 * @param        $name  Column name
+	 * @param string $type  Column type
+	 * @param bool   $is_null   Is nullable
+	 * @param bool   $default   Column default value
+	 * @param string $comment   Comment for JooYii
+	 * @param string $extra Column extas
+	 */
+	protected function checkField($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = ''){
         /** @var \JDatabaseDriver $db */
         $db = $this->_db;
         $column = isset($this->_columns[$name])?((array)$this->_columns[$name]):array();
@@ -144,15 +216,26 @@ class Model extends \JTable
         }
     }
 
-    public function store($updateNulls = false)
+	/**
+	 * Store current Object into DB
+	 *
+	 * @param bool $updateNulls Is update of null columns should
+	 *                          be triggered
+	 *
+	 * @return bool Storing attempt result
+	 */
+	public function store($updateNulls = false)
     {
         if(array_key_exists('ordering',$this->_field_defenitions) && !$this->ordering){
             $this->ordering = $this->getNextOrder();
         }
-        return parent::store($updateNulls); // TODO: Change the autogenerated stub
+        return parent::store($updateNulls);
     }
 
-    public function reset()
+	/**
+	 *  Reset current state of Objects public properties
+	 */
+	public function reset()
     {
         // Get the default values for the class from the table.
         foreach ($this->getFields() as $k => $v)
@@ -164,14 +247,36 @@ class Model extends \JTable
         $this->_errors = array();
     }
 
-    protected function onBeforeInit(){
+	/**
+	 * Use for tweaking of initiation process
+	 *
+	 * @return bool State of initiation
+	 */
+	protected function onBeforeInit(){
         return true;
     }
 
+	/**
+	 * Use for tweaking of initiation process
+	 *
+	 * @return bool State of initiation
+	 */
     protected function onAfterInit(){
         return true;
     }
 
+	/**
+	 * Generating alter table SQL for column
+	 *
+	 * @param        $name  Column name
+	 * @param string $type  Column type
+	 * @param bool   $is_null   Is nullable
+	 * @param bool   $default   Column default value
+	 * @param string $comment   Comment for JooYii
+	 * @param string $extra Column extas
+	 *
+	 * @return string ALTER TABLE SQL
+	 */
     protected function fieldSql($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = ''){
         $db = $this->_db;
         $sql = 'ALTER TABLE '.$db->qn($this->_table).' '.(array_key_exists($name,$this->_columns)?'MODIFY':'ADD COLUMN').' ';
@@ -186,6 +291,11 @@ class Model extends \JTable
         return $sql;
     }
 
+	/**
+	 * Attempt to create table
+	 *
+	 * @return mixed Table creation attempt result
+	 */
     protected function createTable(){
         $db = $this->_db;
         $sql = "CREATE TABLE ".$db->qn($this->_table)." (
@@ -195,6 +305,13 @@ class Model extends \JTable
         return $db->setQuery($sql)->execute();
     }
 
+	/**
+	 * Get Joomla form base on xml generated for current model (table defenition)
+	 *
+	 * @param string $form_name Grouping prefix for fields
+	 *
+	 * @return \JForm Joomla form object
+	 */
     public function getForm($form_name = 'jform'){
         $key = $this->_primary_key;
         $name = str_replace('#__',$this->_db->getPrefix() ,$this->_table).($this->$key?('.'.$this->$key):'');
@@ -225,19 +342,40 @@ class Model extends \JTable
             }
         }
         $form = Form::getInstance($name, $xml->asXML(), array(), true, false);
+	    /*
+	     * Register additional field types paths
+	     */
         $form::addFieldPath(\Joomplace\Library\JooYii\Loader::getPathByPsr4(Helper::getClassNameSpace($this).'\\Fields','/','field'));
         $this->preprocessForm($form);
         return $form;
     }
 
-    protected function preprocessForm(Form $form){
+	/**
+	 * Use for needed form customizations
+	 *
+	 * @param Form $form Joomla Form
+	 */
+    protected function preprocessForm(Form &$form){
 
     }
 
+	/**
+	 * Clear cache conditions
+	 */
     public function clearCache(){
         $this->_cache['conditioner'] = null;
     }
 
+	/**
+	 * Get list of objects matching passed conditions
+	 *
+	 * @param bool   $limitstart Start offset
+	 * @param bool   $limit Limit
+	 * @param array  $conditioner Conditions for select
+	 * @param string $by Column name to use as array key
+	 *
+	 * @return mixed Array of current instances
+	 */
     public function getList($limitstart = false, $limit = false, $conditioner = array(),$by = ''){
         if($limit === false){
             $limit = $this->getState('list.limit');
@@ -258,7 +396,9 @@ class Model extends \JTable
         $query = $this->getListQuery($conditioner);
 
         if($limit){
-            //prepare pagination
+            /*
+             * prepare pagination
+             */
             $this->_limit = $limit;
             $cquery = clone $query;
             if($cquery->type == 'select'
@@ -286,6 +426,13 @@ class Model extends \JTable
         return $this->_cache['list'];
     }
 
+	/**
+	 * Get total count of matches for current conditions
+	 *
+	 * @param array $conditioner Conditions
+	 *
+	 * @return int|mixed Total
+	 */
     public function getTotal($conditioner = array()){
         if(!$this->_total && $conditioner === $this->_cache['conditioner']){
             /** @var \JDatabaseDriverMysqli $db */
@@ -309,6 +456,13 @@ class Model extends \JTable
         return $this->_total;
     }
 
+	/**
+	 * Generate query for conditions
+	 *
+	 * @param array $conditioner Conditions
+	 *
+	 * @return \JDatabaseQuery Query
+	 */
     public function getListQuery($conditioner = array()){
         if(!is_array($conditioner)){
             $conditioner = array($this->_primary_key => $conditioner);
@@ -317,7 +471,9 @@ class Model extends \JTable
         /** @var \JDatabaseDriverMysqli $db */
         $db = $this->_db;
 
-        // Initialise the query.
+	    /*
+	     * Initialise the query
+	     */
         $query = $db->getQuery(true)
             ->select('*')
             ->from($this->_table);
@@ -325,7 +481,9 @@ class Model extends \JTable
 
         foreach ($conditioner as $field => $value)
         {
-            // Check that $field is in the table.
+            /*
+             *  Check that $field is in the table.
+             */
             if (!in_array($field, $fields))
             {
                 throw new \UnexpectedValueException(sprintf('Missing field in database: %s &#160; %s.', get_class($this), $field));
@@ -355,6 +513,14 @@ class Model extends \JTable
         return $query;
     }
 
+	/**
+	 * Recalculate limit start according to total
+	 *
+	 * @param $start Limit start
+	 * @param $limit Limit
+	 *
+	 * @return int|mixed New limit start
+	 */
     protected function getStart($start, $limit){
         $this->_offset = $start;
         if ($start > $this->_total - $limit)
@@ -364,6 +530,11 @@ class Model extends \JTable
         return $this->_offset;
     }
 
+	/**
+	 * Get current pagination
+	 *
+	 * @return mixed JPagination object
+	 */
     public function getPagination(){
         if(!$this->_cache['pagination']){
             $this->_cache['pagination'] = new \JPagination($this->_total, $this->_offset, $this->_limit);
@@ -371,6 +542,14 @@ class Model extends \JTable
         return $this->_cache['pagination'];
     }
 
+	/**
+	 * Get columns visiable according to context
+	 *
+	 * @param string $lrf Context
+	 * @param bool   $include_hidden Force hidden to be included
+	 *
+	 * @return array Columns names
+	 */
     public function getColumns($lrf = 'list', $include_hidden = false){
         if(!$include_hidden){
             $fields = array_filter($this->_field_defenitions, function($field) use ($lrf){
@@ -386,6 +565,13 @@ class Model extends \JTable
         return $columns;
     }
 
+	/**
+	 * Render control for the list view
+	 *
+	 * @param $field Column name
+	 *
+	 * @return string Control Html
+	 */
     public function renderListControl($field){
         $defenition = $this->_field_defenitions[$field];
         ob_start();
@@ -418,6 +604,11 @@ class Model extends \JTable
         return $layout;
     }
 
+	/**
+	 * Control for User field type
+	 *
+	 * @param $field Column name
+	 */
     protected function _renderListControlUser($field){
         $user = \JFactory::getUser($this->$field);
         if($user->id){
@@ -435,14 +626,29 @@ class Model extends \JTable
         echo $layout->render(array('value'=>$value,'task'=>$task,'class'=>$class,'id'=>$this->$key));
     }
 
+	/**
+	 * Control for Text field type
+	 *
+	 * @param $field Column name
+	 */
     protected function _renderListControlText($field){
         echo Helper::trimText($this->$field,75);
     }
 
+	/**
+	 * Control for Editor field type
+	 *
+	 * @param $field Column name
+	 */
     protected function _renderListControlEditor($field){
         $this->_renderListControlText($field);
     }
 
+	/**
+	 * Control for Radio field type
+	 *
+	 * @param $field Column name
+	 */
     protected function _renderListControlRadio($field, $active = false){
         if(in_array($field,array('published','featured'))){
             /*
@@ -463,14 +669,31 @@ class Model extends \JTable
         }
     }
 
+	/**
+	 * Reroute for publish action
+	 *
+	 * @param null $pks Ids
+	 * @param int  $state State
+	 * @param int  $userId User
+	 *
+	 * @return mixed
+	 */
     public function publish($pks = null, $state = 1, $userId = 0)
     {
         /*
-         * Hack (reroute) because of JTable publish doesn't suite by params
+         * Hack (reroute) because of JTable::publish doesn't suite by params
          */
         return Helper::callBindedFunction($this,'setPublished');
     }
 
+	/**
+	 * Change publish state
+	 *
+	 * @param array $cid Ids
+	 * @param int   $state New state
+	 *
+	 * @return int Count of changed entries
+	 */
     public function setPublished(Array $cid, $state = 1)
     {
         $counter = 0;
@@ -490,6 +713,13 @@ class Model extends \JTable
         return $counter;
     }
 
+	/**
+	 * Alias for setPublished with state 0
+	 *
+	 * @param array $cid Ids
+	 *
+	 * @return int
+	 */
     public function unpublish(Array $cid){
         $counter = $this->setPublished($cid,$state = 0);
         if($counter){
@@ -498,6 +728,14 @@ class Model extends \JTable
         return $counter;
     }
 
+	/**
+	 * Get user state or it's specific entry
+	 *
+	 * @param string $var Path
+	 * @param null   $default Default value
+	 *
+	 * @return \Joomla\Registry\Registry|mixed
+	 */
     public function getState($var = '', $default = null)
     {
         $this->populateState();
@@ -508,6 +746,13 @@ class Model extends \JTable
         }
     }
 
+	/**
+	 * Set value for specific state entry
+	 *
+	 * @param      $var Path
+	 * @param      $value Value
+	 * @param bool $set_user_state Flag of need to set as User state
+	 */
     public function setState($var, $value, $set_user_state = false)
     {
         $this->populateState();
@@ -517,6 +762,9 @@ class Model extends \JTable
         }
     }
 
+	/**
+	 * State auto-population
+	 */
     public function populateState(){
         if(!$this->_user_state){
             $this->_user_state = new \Joomla\Registry\Registry();
@@ -615,10 +863,18 @@ class Model extends \JTable
         return true;
     }
 
+	/**
+	 * @return bool If state is editable by current user
+	 */
     public function canEditState(){
         return true;
     }
 
+	/**
+	 * @param array $cid Ids to delete
+	 *
+	 * @return bool|int Count of affected entries
+	 */
     public function remove(array $cid)
     {
         $counter = 0;
@@ -635,6 +891,11 @@ class Model extends \JTable
         }
     }
 
+	/**
+	 * Get public avaliable values
+	 *
+	 * @return array Field name as key and value as value
+	 */
     public function reveal(){
         return array_filter(get_object_vars($this),function($key){
             if(strpos($key,'_')===0){
