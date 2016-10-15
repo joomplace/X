@@ -14,12 +14,16 @@ jimport('joomla.database.table');
  * Class Model
  * Both Table and Table Entry description
  * @package Joomplace\Library\JooYii
+ *
+ * @since   1.0
  */
 class Model extends \JTable
 {
 	/**
 	 * Array of tables names as key and state of integrety as value
 	 * @var array $_integrety_checked
+	 *
+	 * @since 1.0
 	 */
 	protected static $_integrety_checked = array();
 	/** @var  \JDatabaseDriver $_db */
@@ -27,6 +31,8 @@ class Model extends \JTable
 	/**
 	 * Array of tables columns existing in DB
 	 * @var array $_columns
+	 *
+	 * @since 1.0
 	 */
 	protected $_columns;
 	/** @var  \Joomla\Registry\Registry $_user_state */
@@ -39,6 +45,8 @@ class Model extends \JTable
 	/**
 	 * Used for storing last list results
 	 * @var array $_cache
+	 *
+	 * @since 1.0
 	 */
 	protected $_cache = array(
 		'conditioner' => null,
@@ -52,16 +60,22 @@ class Model extends \JTable
 	/**
 	 * Table and table fields charset
 	 * @var string $_charset
+	 *
+	 * @since 1.0
 	 */
 	protected $_charset = 'utf8';
 	/**
 	 * Table and table fields collation
 	 * @var string $_collation
+	 *
+	 * @since 1.0
 	 */
 	protected $_collation = 'unicode_ci';
 	/**
 	 * List of field names as key for field describing arrays
 	 * @var array $_field_defenitions
+	 *
+	 * @since 1.0
 	 */
 	protected $_field_defenitions = array(
 		'id'       => array(
@@ -105,11 +119,15 @@ class Model extends \JTable
 	 * Use this field to extend $_field_defenitions
 	 * in final class impementation
 	 * @var array $_fields
+	 *
+	 * @since 1.0
 	 */
 	protected $_fields = array();
 
 	/**
 	 * Model constructor.
+	 *
+	 * @since 1.0
 	 */
 	public function __construct()
 	{
@@ -145,6 +163,8 @@ class Model extends \JTable
 	 * Use for tweaking of initiation process
 	 *
 	 * @return bool State of initiation
+	 *
+	 * @since 1.0
 	 */
 	protected function onBeforeInit()
 	{
@@ -157,6 +177,8 @@ class Model extends \JTable
 	 * @param bool $force A flag for forcing recheck
 	 *
 	 * @return bool Integrety check status
+	 *
+	 * @since 1.0
 	 */
 	protected function checkIntegrety($force = false)
 	{
@@ -188,6 +210,8 @@ class Model extends \JTable
 	 * for current model table
 	 *
 	 * @return bool
+	 *
+	 * @since 1.0
 	 */
 	public function isIntegretyChecked()
 	{
@@ -198,6 +222,8 @@ class Model extends \JTable
 	 * Attempt to create table
 	 *
 	 * @return mixed Table creation attempt result
+	 *
+	 * @since 1.0
 	 */
 	protected function createTable()
 	{
@@ -219,6 +245,9 @@ class Model extends \JTable
 	 * @param bool   $default Column default value
 	 * @param string $comment Comment for JooYii
 	 * @param string $extra   Column extas
+	 *
+	 *
+	 * @since 1.0
 	 */
 	protected function checkField($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = '')
 	{
@@ -273,6 +302,8 @@ class Model extends \JTable
 	 * @param string $extra   Column extas
 	 *
 	 * @return string ALTER TABLE SQL
+	 *
+	 * @since 1.0
 	 */
 	protected function fieldSql($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = '')
 	{
@@ -297,6 +328,8 @@ class Model extends \JTable
 	 * Use for tweaking of initiation process
 	 *
 	 * @return bool State of initiation
+	 *
+	 * @since 1.0
 	 */
 	protected function onAfterInit()
 	{
@@ -305,6 +338,8 @@ class Model extends \JTable
 
 	/**
 	 *  Reset current state of Objects public properties
+	 *
+	 * @since 1.0
 	 */
 	public function reset()
 	{
@@ -324,6 +359,8 @@ class Model extends \JTable
 	 * @param string $form_name Grouping prefix for fields
 	 *
 	 * @return \JForm Joomla form object
+	 *
+	 * @since 1.0
 	 */
 	public function getForm($form_name = 'jform')
 	{
@@ -378,6 +415,9 @@ class Model extends \JTable
 	 * Use for needed form customizations
 	 *
 	 * @param Form $form Joomla Form
+	 *
+	 *
+	 * @since 1.0
 	 */
 	protected function preprocessForm(Form &$form)
 	{
@@ -386,6 +426,8 @@ class Model extends \JTable
 
 	/**
 	 * Clear cache conditions
+	 *
+	 * @since 1.0
 	 */
 	public function clearCache()
 	{
@@ -401,6 +443,8 @@ class Model extends \JTable
 	 * @param string $by          Column name to use as array key
 	 *
 	 * @return mixed Array of current instances
+	 *
+	 * @since 1.0
 	 */
 	public function getList($limitstart = false, $limit = false, $conditioner = array(), $by = '')
 	{
@@ -472,6 +516,8 @@ class Model extends \JTable
 	 * @param null   $default Default value
 	 *
 	 * @return \Joomla\Registry\Registry|mixed
+	 *
+	 * @since 1.0
 	 */
 	public function getState($var = '', $default = null)
 	{
@@ -488,6 +534,8 @@ class Model extends \JTable
 
 	/**
 	 * State auto-population
+	 *
+	 * @since 1.0
 	 */
 	public function populateState()
 	{
@@ -509,6 +557,8 @@ class Model extends \JTable
 	 * @param array $conditioner Conditions
 	 *
 	 * @return \JDatabaseQuery Query
+	 *
+	 * @since 1.0
 	 */
 	public function getListQuery($conditioner = array())
 	{
@@ -576,6 +626,8 @@ class Model extends \JTable
 	 * @param bool   $include_hidden Force hidden to be included
 	 *
 	 * @return array Columns names
+	 *
+	 * @since 1.0
 	 */
 	public function getColumns($lrf = 'list', $include_hidden = false)
 	{
@@ -607,6 +659,8 @@ class Model extends \JTable
 	 * @param $limit Limit
 	 *
 	 * @return int|mixed New limit start
+	 *
+	 * @since 1.0
 	 */
 	protected function getStart($start, $limit)
 	{
@@ -625,6 +679,8 @@ class Model extends \JTable
 	 * @param      $var            Path
 	 * @param      $value          Value
 	 * @param bool $set_user_state Flag of need to set as User state
+	 *
+	 * @since 1.0
 	 */
 	public function setState($var, $value, $set_user_state = false)
 	{
@@ -642,6 +698,8 @@ class Model extends \JTable
 	 * @param array $conditioner Conditions
 	 *
 	 * @return int|mixed Total
+	 *
+	 * @since 1.0
 	 */
 	public function getTotal($conditioner = array())
 	{
@@ -676,6 +734,8 @@ class Model extends \JTable
 	 * Get current pagination
 	 *
 	 * @return mixed JPagination object
+	 *
+	 * @since 1.0
 	 */
 	public function getPagination()
 	{
@@ -693,6 +753,8 @@ class Model extends \JTable
 	 * @param $field Column name
 	 *
 	 * @return string Control Html
+	 *
+	 * @since 1.0
 	 */
 	public function renderListControl($field)
 	{
@@ -736,6 +798,9 @@ class Model extends \JTable
 	 * Control for User field type
 	 *
 	 * @param $field Column name
+	 *
+	 *
+	 * @since 1.0
 	 */
 	protected function _renderListControlUser($field)
 	{
@@ -754,6 +819,9 @@ class Model extends \JTable
 	 * Control for Text field type
 	 *
 	 * @param $field Column name
+	 *
+	 *
+	 * @since 1.0
 	 */
 	protected function _renderListControlText($field)
 	{
@@ -774,6 +842,9 @@ class Model extends \JTable
 	 * Control for Radio field type
 	 *
 	 * @param $field Column name
+	 *
+	 *
+	 * @since 1.0
 	 */
 	protected function _renderListControlRadio($field, $active = false)
 	{
@@ -800,6 +871,16 @@ class Model extends \JTable
 		}
 	}
 
+	/**
+	 * Control for list item actions
+	 *
+	 * @param string $task  Task to trigger
+	 * @param string $value Text for the link
+	 * @param string $class Class of html entry
+	 *
+	 *
+	 * @since 1.0
+	 */
 	public function renderListControlActionLink($task, $value, $class = '')
 	{
 		$paths  = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
@@ -817,6 +898,8 @@ class Model extends \JTable
 	 * @param int  $userId User
 	 *
 	 * @return mixed
+	 *
+	 * @since 1.0
 	 */
 	public function publish($pks = null, $state = 1, $userId = 0)
 	{
@@ -832,6 +915,8 @@ class Model extends \JTable
 	 * @param array $cid Ids
 	 *
 	 * @return int
+	 *
+	 * @since 1.0
 	 */
 	public function unpublish(Array $cid)
 	{
@@ -851,6 +936,8 @@ class Model extends \JTable
 	 * @param int   $state New state
 	 *
 	 * @return int Count of changed entries
+	 *
+	 * @since 1.0
 	 */
 	public function setPublished(Array $cid, $state = 1)
 	{
@@ -882,6 +969,8 @@ class Model extends \JTable
 	 *                          be triggered
 	 *
 	 * @return bool Storing attempt result
+	 *
+	 * @since 1.0
 	 */
 	public function store($updateNulls = false)
 	{
@@ -901,7 +990,7 @@ class Model extends \JTable
 	 *
 	 * @return  boolean|JException  Boolean true on success, boolean false or JException instance on error
 	 *
-	 * @since   12.2
+	 * @since   1.0
 	 */
 	public function saveorder(array $pks = null, $order = null)
 	{
@@ -981,6 +1070,8 @@ class Model extends \JTable
 
 	/**
 	 * @return bool If state is editable by current user
+	 *
+	 * @since 1.0
 	 */
 	public function canEditState()
 	{
@@ -991,6 +1082,8 @@ class Model extends \JTable
 	 * @param array $cid Ids to delete
 	 *
 	 * @return bool|int Count of affected entries
+	 *
+	 * @since 1.0
 	 */
 	public function remove(array $cid)
 	{
@@ -1018,6 +1111,8 @@ class Model extends \JTable
 	 * Get public avaliable values
 	 *
 	 * @return array Field name as key and value as value
+	 *
+	 * @since 1.0
 	 */
 	public function reveal()
 	{
