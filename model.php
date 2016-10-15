@@ -11,8 +11,10 @@ namespace Joomplace\Library\JooYii;
 jimport('joomla.database.table');
 
 /**
- * Class Model
+ * Model class for implementing M letter of new Joomla!CMS MVC
+ * (JooYii MVC)
  * Both Table and Table Entry description
+ *
  * @package Joomplace\Library\JooYii
  *
  * @since   1.0

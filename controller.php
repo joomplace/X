@@ -1,250 +1,432 @@
 <?php
 /**
  * @package     Joomplace\Library\JooYii
- * @subpackage
  *
- * @copyright   A copyright
- * @license     A "Slug" license name e.g. GPL2
+ * @copyright   Alexandr Kosarev
+ * @license     GPL2
  */
 
 namespace Joomplace\Library\JooYii;
 
-
+/**
+ * Controller class for implementing C letter of new Joomla!CMS MVC
+ * (JooYii MVC)
+ *
+ * @package     Joomplace\Library\JooYii
+ *
+ * @since       1.0
+ */
 class Controller
 {
 	protected $_classreflection;
 	protected $_model;
 	protected $_models = array();
 
+	/**
+	 * Controller constructor
+	 *
+	 * @since 1.0
+	 */
 	public function __construct()
 	{
-        if(!class_exists('JToolbarHelper')){
-            jimport('includes.toolbar',JPATH_ADMINISTRATOR);
-        }
+		if (!class_exists('JToolbarHelper'))
+		{
+			jimport('includes.toolbar', JPATH_ADMINISTRATOR);
+		}
 		$this->setModel($this->getClassName());
 	}
 
-	protected function getClassName(){
+	/**
+	 * Alias to JooYii Helper
+	 *
+	 * @return mixed
+	 *
+	 * @since 1.0
+	 */
+	protected function getClassName()
+	{
 		return Helper::getClassName($this);
 	}
 
-    protected function getClassParentNameSpacing(){
-        return Helper::getClassParentNameSpacing($this);
-    }
-
-
 	/**
-	 * @param null $modelname
+	 * Method to get helper class
+	 *
+	 * @param null $helpername
 	 * @param bool $force_new
 	 *
-	 * @return Model
+	 * @return mixed
 	 *
-	 * @since version
+	 * @since 1.0
 	 */
-	public function getModel($modelname = null, $force_new = false)
-	{
-		if(is_null($modelname)){
-			$modelname = $this->_model;
-		}
-		if(!isset($this->_models[$modelname]) || $force_new){
-			$modelClass = $this->getClassParentNameSpacing().'\\Model\\'.$modelname;
-			$this->_models[$modelname] = new $modelClass();
-		}
-		return $this->_models[$modelname];
-	}
-
 	public function getHelper($helpername = null, $force_new = true)
 	{
-        $helperClass = $this->getClassParentNameSpacing().'\\Helper\\'.$helpername;
-        $helper = new $helperClass();
+		$helperClass = $this->getClassParentNameSpacing() . '\\Helper\\' . $helpername;
+		$helper      = new $helperClass();
 
 		return $helper;
 	}
 
 	/**
-	 * @param string $view
+	 * Alias to JooYii Helper
 	 *
-	 * @return View
+	 * @return mixed
 	 *
-	 * @since version
+	 * @since 1.0
 	 */
-	private function getView($view = null){
-		if(is_null($view)){
-			$view = $this->getClassName();
+	protected function getClassParentNameSpacing()
+	{
+		return Helper::getClassParentNameSpacing($this);
+	}
+
+	/**
+	 * Proxy to call Model (default for controller) method and
+	 * pass array of data
+	 *
+	 * @param string $task  Method to call
+	 * @param array  $jform Array of data to pass
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public final function model($task, Array $jform)
+	{
+		$model = $this->getModel();
+		$model->$task($jform);
+	}
+
+	/**
+	 * Get components model
+	 *
+	 * @param null|string $modelname Model to load
+	 * @param bool        $force_new Flag to force new
+	 *
+	 * @return Model
+	 *
+	 * @since 1.0
+	 */
+	public function getModel($modelname = null, $force_new = false)
+	{
+		if (is_null($modelname))
+		{
+			$modelname = $this->_model;
 		}
-//		$viewClass = $this->getClassParentNameSpacing().'\\View\\'.$view;
-//		$view = new $viewClass();
-        $view = new View($view);
-		return $view;
+		if (!isset($this->_models[$modelname]) || $force_new)
+		{
+			$modelClass = $this->getClassParentNameSpacing() . '\\Model\\' . $modelname;
+			if (class_exists($modelClass))
+			{
+				$this->_models[$modelname] = new $modelClass();
+			}
+			else
+			{
+				$this->_models[$modelname] = false;
+			}
+		}
+
+		return $this->_models[$modelname];
 	}
 
 	/**
 	 * @param string $model
 	 *
-	 * @since version
+	 * @since 1.0
 	 */
 	public function setModel($model)
 	{
 		$this->_model = $model;
 	}
 
-	public final function model($task, Array $jform){
-	    $jform = \JFactory::getApplication()->input->get('jform',array(),'array');
-        $model = $this->getModel();
-        $model->$task($jform);
-    }
-
-	protected function render($view, $vars){
-		$view = $this->getView($view);
-        $view->setNamespace($this->getClassParentNameSpacing());
-		foreach ($vars as $var => $value){
-			$view->setVar($var,$value);
+	/**
+	 * Method to proxy task to somewhere else
+	 *
+	 * @param string $task Task to process
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function proxy($task)
+	{
+		$task = explode('.', $task);
+		unset($task[0]);
+		$task = array_values($task);
+		/*
+		 * TODO: think on further extension
+		 */
+		switch ($task[0])
+		{
+			case 'model':
+				$model = $this->getModel();
+				if (Helper::callBindedFunction($model, $task[1]) !== false)
+				{
+					Helper::callBindedFunction($this, 'index');
+				}
+				else
+				{
+					echo 'smth went wrong';
+				}
 		}
+	}
+
+	/**
+	 * Alias for edit(0)
+	 *
+	 * @since 1.0
+	 */
+	public function add()
+	{
+		$this->edit();
+	}
+
+	/**
+	 * Default method to edit record of default model
+	 *
+	 * @param array $cid Array type used for J compatibility only
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function edit(array $cid = array())
+	{
+		$model = $this->getModel();
+		if ($cid)
+		{
+			$model->load($cid[0]);
+			\JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()) . '_EDIT_TITLE'), 'pencil');
+		}
+		else
+		{
+			\JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()) . '_NEW_TITLE'), 'pencil-2');
+		}
+		$vars = array(
+			'item' => $model,
+		);
+
+		$key = $model->getKeyName();
+		\JToolbarHelper::apply('apply');
+		\JToolbarHelper::save('save');
+		if ($model->$key)
+		{
+			\JToolbarHelper::save2copy('save2copy');
+		}
+		\JToolbarHelper::save2new('save2new');
+		\JToolbarHelper::cancel('cancel');
+
+		echo $this->render('form', $vars);
+	}
+
+	/**
+	 * Method to render Html markup of passed View
+	 *
+	 * @param string $view View name
+	 * @param array  $vars Variables
+	 *
+	 * @return string Html markup
+	 *
+	 * @since 1.0
+	 */
+	protected function render($view, $vars)
+	{
+		$view = $this->getView($view);
+		$view->setNamespace($this->getClassParentNameSpacing());
+		foreach ($vars as $var => $value)
+		{
+			$view->setVar($var, $value);
+		}
+
 		return $view->render();
 	}
 
-    public function index($limit = false, $limitstart = 0){
-        $model = $this->getModel();
-        $vars = array();
-        if($model){
-            $state = $model->getState();
-            if($limit !== false){
-                $items = $model->getList($limitstart,$limit);
-            }else{
-                $items = $model->getList();
-            }
-            $pagination = $model->getPagination();
-            $vars = array(
-                'state' => $state,
-                'items' => $items,
-                'pagination' => $pagination,
-            );
-        }
-        echo $this->render($this->getClassName(),$vars);
-    }
+	/**
+	 * Get view object
+	 *
+	 * @param string $view View class name
+	 *
+	 * @return View View object
+	 *
+	 * @since 1.0
+	 */
+	private function getView($view = null)
+	{
+		if (is_null($view))
+		{
+			$view = $this->getClassName();
+		}
+//		$viewClass = $this->getClassParentNameSpacing().'\\View\\'.$view;
+//		$view = new $viewClass();
+		$view = new View($view);
 
-	public function proxy($task){
-	    $task = explode('.', $task);
-        unset($task[0]);
-        $task = array_values($task);
-        /*
-         * TODO: think on further extension
-         */
-        switch ($task[0]){
-            case 'model':
-                $model = $this->getModel();
-                if(Helper::callBindedFunction($model,$task[1])!==false){
-                    Helper::callBindedFunction($this,'index');
-                }else{
-                    echo 'smth went wrong';
-                }
-        }
-    }
+		return $view;
+	}
 
-    public function add(){
-        $this->edit();
-    }
+	/**
+	 * Alias for edit & add
+	 *
+	 * @param array $jform Form data
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function saveandnew(array $jform)
+	{
+		$this->apply($jform, true);
+	}
 
-    public function edit(array $cid = array()){
-        $model = $this->getModel();
-        if($cid){
-            $model->load($cid[0]);
-            \JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()).'_EDIT_TITLE'), 'pencil');
-        }else{
-            \JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()).'_NEW_TITLE'), 'pencil-2');
-        }
-        $vars = array(
-            'item' => $model,
-        );
+	/**
+	 * Apply changes to entry
+	 *
+	 * @param array $jform Form data
+	 * @param bool  $tonew Is new form should be rendered
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function apply(array $jform, $tonew = false)
+	{
+		$model = $this->getModel();
+		$model->save($jform);
+		if (!$tonew)
+		{
+			$key = $model->getKeyName();
+			$this->edit(array($model->$key));
+		}
+		else
+		{
+			$this->edit();
+		}
+	}
 
-        $key = $model->getKeyName();
-        \JToolbarHelper::apply('apply');
-        \JToolbarHelper::save('save');
-        if($model->$key){
-            \JToolbarHelper::save2copy('save2copy');
-        }
-        \JToolbarHelper::save2new('save2new');
-        \JToolbarHelper::cancel('cancel');
+	/**
+	 * Alias to save item & changes to a new entry
+	 *
+	 * @param array $jform Form data
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function save2copy(array $jform)
+	{
+		$jform['id'] = '';
+		$this->apply($jform);
+	}
 
-        echo $this->render('form',$vars);
-    }
+	/**
+	 * Default method to save
+	 *
+	 * @param array $jform Form data
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function save(array $jform)
+	{
+		$model = $this->getModel();
+		$model->save($jform);
+		$this->index();
+	}
 
-    public function apply(array $jform, $tonew = false){
-        $model = $this->getModel();
-        $model->save($jform);
-        if(!$tonew){
-            $key = $model->getKeyName();
-            $this->edit(array($model->$key));
-        }else{
-            $this->edit();
-        }
-    }
+	/**
+	 * Default list render and echo action
+	 *
+	 * @param bool        $limit      Limit of records
+	 * @param int         $limitstart Offset
+	 * @param bool|string $view       View name
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function index($limit = false, $limitstart = 0, $view = false)
+	{
+		$model = $this->getModel();
+		$vars  = array();
+		if ($model)
+		{
+			$state = $model->getState();
+			if ($limit !== false)
+			{
+				$items = $model->getList($limitstart, $limit);
+			}
+			else
+			{
+				$items = $model->getList();
+			}
+			$pagination = $model->getPagination();
+			$vars       = array(
+				'state'      => $state,
+				'items'      => $items,
+				'pagination' => $pagination,
+			);
+		}
+		echo $this->render(($view ? $view : $this->getClassName()), $vars);
+	}
 
-    public function saveandnew(array $jform){
-        $this->apply($jform, true);
-    }
+	/**
+	 *  Alias fot index
+	 *
+	 * @since 1.0
+	 */
+	public function cancel()
+	{
+		$this->index();
+	}
 
-    public function save2copy(array $jform){
-        $jform['id'] = '';
-        $this->apply($jform);
-    }
+	/**
+	 * Method to support Joomla!Cms drag&drop ordering
+	 *
+	 * @param array $cid
+	 * @param array $order
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function saveOrderAjax(array $cid, array $order)
+	{
 
-    public function save(array $jform){
-        $model = $this->getModel();
-        $model->save($jform);
-        $this->index();
-    }
+		// Sanitize the input
+		\JArrayHelper::toInteger($cid);
+		\JArrayHelper::toInteger($order);
 
-    public function cancel(){
-        $this->index();
-    }
+		// Get the model
+		$model = $this->getModel();
 
-    public function saveOrderAjax(array $cid, array $order){
+		// Save the ordering
+		$return = $model->saveorder($cid, $order);
 
-        // Sanitize the input
-        \JArrayHelper::toInteger($cid);
-        \JArrayHelper::toInteger($order);
+		if ($return)
+		{
+			echo "1";
+		}
 
-        // Get the model
-        $model = $this->getModel();
+		// Close the application
+		\JFactory::getApplication()->close();
+	}
 
-        // Save the ordering
-        $return = $model->saveorder($cid, $order);
-
-        if ($return)
-        {
-            echo "1";
-        }
-
-        // Close the application
-        \JFactory::getApplication()->close();
-    }
-
-    /**
-     * Rest responder | Don't blame me for this
-     *
-     * @param String    $data     data of response
-     * @param boolean   $status   is everything went good
-     *
-     * @since version
-     */
-    protected function respondJson($data, $status){
-        if(!$status){
-            echo "<pre>";
-            print_r($data);
-            echo "</pre>";
-            header('HTTP/1.1 500 Internal Server Error');
-            trigger_error("Issue in processing", E_USER_ERROR);
-        }
-        ob_start();
-        $response = new \stdClass();
-        $response->data = $data;
-        $log = ob_get_contents();
-        ob_end_clean();
-        $response->log = $log;
-        header('Content-Type: application/json');
-        echo json_encode($response);
-        exit();
-    }
+	/**
+	 * Rest responder | Don't blame me for this
+	 *
+	 * @param String  $data   data of response
+	 * @param boolean $status is everything went good
+	 *
+	 * @since 1.0
+	 */
+	protected function respondJson($data, $status)
+	{
+		if (!$status)
+		{
+			echo "<pre>";
+			print_r($data);
+			echo "</pre>";
+			header('HTTP/1.1 500 Internal Server Error');
+			trigger_error("Issue in processing", E_USER_ERROR);
+		}
+		ob_start();
+		$response       = new \stdClass();
+		$response->data = $data;
+		$log            = ob_get_contents();
+		ob_end_clean();
+		$response->log = $log;
+		header('Content-Type: application/json');
+		echo json_encode($response);
+		exit();
+	}
 
 }
