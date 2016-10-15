@@ -35,3 +35,17 @@ jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
 $component = new Component();
 $component->execute();
 ```
+To allow menu items creation place `metadata.xml` into specific view folder
+
+File `/site/view/examples/metadata.xml` can look like this
+```XML
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+	<view>
+		<options var="additional_request_var">
+			<default name="COM_EXAMPLE" msg="COM_EXAMPLE_DESC"/>
+			<option name="COM_EXAMPLE_EXT" msg="COM_EXAMPLE_EXT_DESC" value="additional_request_var_value" />
+		</options>
+	</view>
+</metadata>
+```
