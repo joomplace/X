@@ -49,3 +49,23 @@ File `/site/view/examples/metadata.xml` can look like this
 	</view>
 </metadata>
 ```
+To add routing simple add `router.php` into your site folder
+It`s content would be something like this:
+ ```PHP
+ namespace Joomplace\Example\Site;
+ 
+ use Joomplace\Library\JooYii\Router as BaseRouter;
+ 
+ defined('_JEXEC') or die;
+ 
+ jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
+ 
+ class Router extends BaseRouter
+ {
+ 	protected function setNamespace()
+ 	{
+ 		$this->_namespace = __NAMESPACE__;
+ 	}
+ 
+ }
+ ```
