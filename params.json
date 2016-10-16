@@ -1,6 +1,6 @@
 {
   "name": "JooYii",
-  "tagline": "JooYii Framework for Joomla! Inspired by frameworks, build to make life better.",
+  "tagline": "JooYii Framework for Joomla! Inspired by frameworks, built to make life better.",
   "body": "### Welcome to JooYii Project.\r\nThis is Joomla!CMS Library that is build by @joomplace developers to bring new life to MVC structure of Joomla!CMS.\r\n\r\n### Inspired by greatest\r\nThis is not something that would provide tones of new code and some not known yet tech. This is about taking good approach from anywhere and adapting it to Joomla!CMS core.\r\n\r\nActually at 1.0 version it's mostly Doctrine, Yii2, Joomla!CMS PSR-4 convention.\r\n\r\n### Built to improve\r\nEverybody are welcomed to use and to PR this library.\r\n\r\nJust one thing to keep in mind when PR: \r\n\r\n> If you PR this repo - it's mostly means you use the code. And it mostly means that you like the code. So it must mean that you trust maintainers. So no yelling if some PR will not make it.\r\n\r\n### Authors and Contributors\r\nThanks to me(@alex7r) for making it and to @timofey-l for kind of pushing me against the Joomla!CMS, it forced me to try to make J! better place for developers.\r\n\r\n### Support or Contact\r\nHaving trouble? Check out our [documentation](https://github.com/joomplace/JooYii/blob/master/README.md) or [contact support](https://www.joomplace.com/support/helpdesk.html) and we’ll help you sort it out.",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
 }
