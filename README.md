@@ -1,5 +1,5 @@
 # JooYii
-JooYii Framework for Joomla!
+[`JooYii`](https://joomplace.github.io/JooYii/) Framework for Joomla!
 ## Get Started
 Autoload simply by
 ```PHP
@@ -49,7 +49,7 @@ File `/site/view/examples/metadata.xml` can look like this
 	</view>
 </metadata>
 ```
-To add routing simply add `router.php` into your site folder
+To add routing simple add `router.php` into your site folder
 It`s content would be something like this:
  ```PHP
  namespace Joomplace\Example\Site;
