@@ -9,6 +9,9 @@
 
 namespace Joomplace\Library\JooYii;
 
+use JApplicationBase;
+use JInput;
+
 /**
  * Main (if somehow not single) component entry abstraction
  * Fully preimplemented
@@ -21,13 +24,61 @@ namespace Joomplace\Library\JooYii;
  */
 abstract class Component extends \JControllerBase
 {
-
+	protected static $_default_controller = 'dashboard';
+	protected static $_default_task = 'index';
+	/** @var array $_components Cache of JooYii Components instances */
+	private static $_components = array();
 	/** @var array $_controllers Cache of (sub)controllers instances */
 	protected $_controllers = array();
-	protected $_default_controller = 'dashboard';
-	protected $_default_task = 'index';
 	/** @var string $_namespace Automatically changed when class extended */
 	protected $_namespace = __NAMESPACE__;
+
+	public function __construct(JInput $input = null, JApplicationBase $app = null)
+	{
+		parent::__construct($input, $app);
+		$this->setNamespace();
+	}
+
+	abstract protected function setNamespace();
+
+	/**
+	 * @return string
+	 *
+	 * @since 1.0
+	 */
+	public static function getDefaultController()
+	{
+		return static::$_default_controller;
+	}
+
+	/**
+	 * @return string
+	 *
+	 * @since 1.0
+	 */
+	public static function getDefaultTask()
+	{
+		return static::$_default_task;
+	}
+
+	/**
+	 * @not_used
+	 *
+	 * @param string $component
+	 *
+	 * @return Component Component instance
+	 *
+	 * @since 1.0
+	 */
+	public static function getInstance($component)
+	{
+		if (!isset(self::$_components[$component]))
+		{
+			self::$_components[$component] = new $component();
+		}
+
+		return self::$_components[$component];
+	}
 
 	/**
 	 * Execute the controller.
@@ -59,8 +110,8 @@ abstract class Component extends \JControllerBase
 			}
 		}
 
-		$controller = $input->getString('controller', $this->_default_controller);
-		$task       = explode('.', $input->getString('task', $json_registry->get('task', $this->_default_task)));
+		$controller = $input->getString('controller', static::$_default_controller);
+		$task       = explode('.', $input->getString('task', $json_registry->get('task', static::$_default_controller)));
 		$action     = $task[0];
 		$input->set('view', $input->getString('view', $controller));
 

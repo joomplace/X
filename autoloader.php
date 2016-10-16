@@ -17,6 +17,51 @@ namespace Joomplace\Library\JooYii;
  */
 class Loader
 {
+	protected static $vendors = array('Joomplace');
+
+	/**
+	 * Allow to register 3rd party vendors
+	 *
+	 * @param string $vendor 3rd party vendor name
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public static function registerVendor($vendor)
+	{
+		if (!in_array($vendor, self::$vendors))
+		{
+			self::$vendors[] = $vendor;
+		}
+	}
+
+	/**
+	 * Add compatibility for Joomla!CMS (3.x) routing system
+	 *
+	 * @param string $class Router class name
+	 *
+	 * @return bool
+	 *
+	 * @since 1.0
+	 */
+	public static function loadRouterForJoomla($class)
+	{
+		if (strpos($class, 'Router'))
+		{
+			$component = str_replace('Router', '', $class);
+			foreach (self::$vendors as $vendor)
+			{
+				$fqcn = $vendor . '\\' . $component . '\\Site\\Router';
+				if (self::loadByPsr4($fqcn))
+				{
+					class_alias($fqcn,$class);
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Class loading by PSR-4
@@ -228,3 +273,4 @@ class Loader
  * Register autoloader on file inclusion
  */
 spl_autoload_register(array('Joomplace\\Library\\JooYii\\Loader', 'loadByPsr4'));
+spl_autoload_register(array('Joomplace\\Library\\JooYii\\Loader', 'loadRouterForJoomla'));
