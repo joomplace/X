@@ -1,0 +1,22 @@
+<extension type="library" version="3.x" method="upgrade">
+    <name>jooyiiM</name>
+    <author>Alexandr Kosarev</author>
+    <creationDate>October 2016</creationDate>
+    <copyright>(C) 2016 - 2017 Joomplace. All rights reserved.</copyright>
+    <license>GPL3</license>
+    <authorEmail>kosarev_a.joomplace.com</authorEmail>
+    <authorUrl>https://www.joomplace.com</authorUrl>
+    <version>1.0</version>
+    <files>
+        <filename>autoloader.php</filename>
+        <filename>component.php</filename>
+        <filename>controller.php</filename>
+        <filename>form.php</filename>
+        <filename>helper.php</filename>
+        <filename>model.php</filename>
+        <filename>router.php</filename>
+        <filename>view.php</filename>
+        <folder>fields</folder>
+        <folder>layouts</folder>
+    </files>
+</extension>
