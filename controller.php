@@ -233,7 +233,7 @@ class Controller
 			$view->setVar($var, $value);
 		}
 
-		return $view->render();
+		return $view->render('',$vars);
 	}
 
 	/**

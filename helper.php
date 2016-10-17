@@ -125,6 +125,40 @@ class Helper
 		}
 	}
 
+	public static function methodExists($class, $method, $in_target = false){
+		if(method_exists($class,$method)){
+			if($in_target){
+				$ref = new ReflectionMethod($class, $method);
+				if(strtolower($ref->getDeclaringClass()->name) == strtolower($class)){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return true;
+			}
+
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * @param $class
+	 * @param $method
+	 *
+	 * @return \ReflectionParameter[]
+	 */
+	public static function getMethodArgs($class, $method) {
+		if(static::methodExists($class, $method)){
+			$ref = new ReflectionMethod($class, $method);
+			$result = $ref->getParameters();
+		}else{
+			$result = array();
+		}
+		return $result;
+	}
+
 	/**
 	 * Use for calling methods on classes
 	 * with auto binding of method params from passed inputs
@@ -149,8 +183,7 @@ class Helper
 		}
 
 		$arguments = array();
-		$ref       = new ReflectionMethod($class, $method);
-		foreach ($ref->getParameters() as $param)
+		foreach (static::getMethodArgs($class, $method) as $param)
 		{
 			/** @var \ReflectionParameter $param */
 			/*

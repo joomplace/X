@@ -123,7 +123,7 @@ class Loader
 	 *
 	 * @since 1.0
 	 */
-	protected static function extractPaths($class, $ext = 'php', $override_logic = false)
+	public static function extractPaths($class, $ext = 'php', $override_logic = false)
 	{
 
 		// Remove the root backslash if present.
