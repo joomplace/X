@@ -201,7 +201,7 @@ class Loader
 					$app      = \JFactory::getApplication((isset($is_admin) && $is_admin) ? 'administrator' : 'site');
 					$template = $app->getTemplate();
 					$root     = ((isset($is_admin) && $is_admin) ? JPATH_ADMINISTRATOR : JPATH_ROOT) . DIRECTORY_SEPARATOR;
-					$return[] = $root . 'templates' . DIRECTORY_SEPARATOR . $template . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . strtolower($classFile) . ($overridable_element ? (DIRECTORY_SEPARATOR . $overridable_element) : '') . DIRECTORY_SEPARATOR;
+					$return[] = $root . 'templates' . DIRECTORY_SEPARATOR . $template . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . $classFile . ($overridable_element ? (DIRECTORY_SEPARATOR . $overridable_element) : '') . DIRECTORY_SEPARATOR;
 					break;
 				default:
 					break;
@@ -209,7 +209,6 @@ class Loader
 			foreach ($filePath as $path)
 			{
 				$classFilePath = $path . $internal . DIRECTORY_SEPARATOR . $classFile;
-				$classFilePath = strtolower($classFilePath);
 
 				$return[] = $classFilePath;
 			}
@@ -235,6 +234,10 @@ class Loader
 		$template = $app->getTemplate();
 
 		$paths = self::extractPaths($ns . '\\View\\' . $view, '/', 'view');
+		/*
+		 * Adding Joomla 3.x views compatibility as it forces "view" folder and not "View"
+		 */
+		$paths = array_merge($paths,self::extractPaths($ns . '\\view\\' . $view, '/', 'view'));
 		foreach ($paths as $path)
 		{
 			/*

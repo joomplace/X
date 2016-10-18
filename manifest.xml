@@ -10,15 +10,15 @@
     <version>1.0</version>
     <files>
         <filename>autoloader.php</filename>
-        <filename>component.php</filename>
-        <filename>controller.php</filename>
-        <filename>form.php</filename>
-        <filename>helper.php</filename>
-        <filename>model.php</filename>
-        <filename>router.php</filename>
-        <filename>view.php</filename>
-        <folder>fields</folder>
-        <folder>layouts</folder>
+        <filename>Component.php</filename>
+        <filename>Controller.php</filename>
+        <filename>Form.php</filename>
+        <filename>Helper.php</filename>
+        <filename>Model.php</filename>
+        <filename>Router.php</filename>
+        <filename>View.php</filename>
+        <folder>Fields</folder>
+        <folder>Layouts</folder>
     </files>
     <updateservers>
         <server type="extension" priority="1" name="JooYii Update Site">https://updates.joomplace.com/jooyii.xml</server>
