@@ -3,7 +3,7 @@
 ## Get Started
 Autoload simply by
 ```PHP
-jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
+jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
 ```
 
 ### Extentions structure
@@ -30,7 +30,7 @@ namespace Joomplace\Example\Site;
 defined('_JEXEC') or die;
 define('DS',DIRECTORY_SEPARATOR);
 
-jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
+jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
 
 $component = new Component();
 $component->execute();
@@ -58,7 +58,7 @@ It`s content would be something like this:
  
  defined('_JEXEC') or die;
  
- jimport('jooyii.autoloader',JPATH_LIBRARIES.DS);
+ jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
  
  class Router extends BaseRouter
  {
