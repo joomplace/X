@@ -129,9 +129,12 @@ class Model extends \JTable
 	/**
 	 * Model constructor.
 	 *
+	 * @param string $conditions Key or array to perform
+	 *                           load on initialization
+	 *
 	 * @since 1.0
 	 */
-	public function __construct()
+	public function __construct($conditions = null)
 	{
 //	    \JPluginHelper::importPlugin( 'jooyii' );
 //	    $dispatcher = \JEventDispatcher::getInstance();
@@ -159,6 +162,7 @@ class Model extends \JTable
 			 */
 			return false;
 		}
+		$this->load($conditions);
 	}
 
 	/**
