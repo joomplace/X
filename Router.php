@@ -117,7 +117,11 @@ abstract class Router extends \JComponentRouterBase
 	 * @since 1.0
 	 */
 	protected function prepareItemidedQuery(&$initial_query){
-		unset($initial_query['Itemid']);
+		if(isset($initial_query['Itemid'])){
+			if(count($initial_query)==2 && isset($initial_query['option']) && isset($initial_query['Itemid'])){
+				return true;
+			}
+		}
 
 		/** @var Component $component */
 		$component = $this->_namespace.'\\Component';
