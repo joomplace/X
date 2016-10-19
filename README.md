@@ -6,6 +6,9 @@ Autoload simply by
 jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
 ```
 
+### Code generator
+Code generation extension is almost ready at https://github.com/joomplace/JooGii
+
 ### Extentions structure
 Let's  check it out on `com_example`:
 
