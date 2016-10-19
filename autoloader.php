@@ -52,7 +52,7 @@ class Loader
 			foreach (self::$vendors as $vendor)
 			{
 				$fqcn = $vendor . '\\' . $component . '\\Site\\Router';
-				if (self::loadByPsr4($fqcn))
+				if(class_exists($fqcn, false) || self::loadByPsr4($fqcn))
 				{
 					class_alias($fqcn,$class);
 					return true;
