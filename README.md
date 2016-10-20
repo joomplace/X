@@ -9,31 +9,18 @@ jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
 ### Code generator
 Code generation extension is almost ready at https://github.com/joomplace/JooGii
 
-### Extentions structure
-Let's  check it out on `com_example`:
+### Extentions examples
+See example component at [here](https://github.com/alex7r/com_jyexample)
 
-#### Back-end
-[`/admin/example.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-example_php)
-
-[`/admin/component.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-component_php)
-
-[`/admin/controller/examples.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-controller-example_php)
-
-[`/admin/model/examples.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-model-example_php)
-
-[`/admin/view/examples/default.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-views-examples-default_php)
-
-[`/admin/view/examples/default_table.php`](https://github.com/joomplace/JooYii/wiki/_com_example-admin-views-examples-default-table_php)
-
+### Quick usage example
 #### Front-end
 File `/site/example.php` contents:
 ```PHP
 namespace Joomplace\Example\Site;
 
 defined('_JEXEC') or die;
-define('DS',DIRECTORY_SEPARATOR);
 
-jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
+jimport('JooYii.autoloader',JPATH_LIBRARIES);
 
 $component = new Component();
 $component->execute();
@@ -61,7 +48,7 @@ It`s content would be something like this:
  
  defined('_JEXEC') or die;
  
- jimport('JooYii.autoloader',JPATH_LIBRARIES.DS);
+ jimport('JooYii.autoloader',JPATH_LIBRARIES);
  
  class Router extends BaseRouter
  {
