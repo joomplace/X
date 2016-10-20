@@ -172,9 +172,9 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	public function add()
+	public function add($return_url = '')
 	{
-		$this->edit();
+		$this->edit(array(),$return_url);
 	}
 
 	/**
@@ -185,9 +185,9 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	public function edit(array $cid = array())
+	public function edit(array $cid = array(), $return_url = '')
 	{
-		$model = $this->getModel();
+		$model = $this->getModel(null, true);
 		if ($cid)
 		{
 			$model->load($cid[0]);
@@ -197,8 +197,10 @@ class Controller
 		{
 			\JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()) . '_NEW_TITLE'), 'pencil-2');
 		}
+
 		$vars = array(
 			'item' => $model,
+			'return_url' => $return_url,
 		);
 
 		$key = $model->getKeyName();
@@ -211,7 +213,7 @@ class Controller
 		\JToolbarHelper::save2new('save2new');
 		\JToolbarHelper::cancel('cancel');
 
-		echo $this->render('form', $vars);
+		echo $this->render($this->getClassName().'.edit', $vars);
 	}
 
 	/**
@@ -280,18 +282,18 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	public function apply(array $jform, $tonew = false)
+	public function apply(array $jform, $tonew = false, $return_url = '')
 	{
 		$model = $this->getModel();
 		$model->save($jform);
 		if (!$tonew)
 		{
 			$key = $model->getKeyName();
-			$this->edit(array($model->$key));
+			$this->edit(array($model->$key), $return_url);
 		}
 		else
 		{
-			$this->edit();
+			$this->edit(array(), $return_url);
 		}
 	}
 
@@ -310,6 +312,19 @@ class Controller
 	}
 
 	/**
+	 * Alias to save item and go to a new entry
+	 *
+	 * @param array $jform Form data
+	 *
+	 *
+	 * @since 1.0
+	 */
+	public function save2new(array $jform)
+	{
+		$this->apply($jform, true);
+	}
+
+	/**
 	 * Default method to save
 	 *
 	 * @param array $jform Form data
@@ -317,11 +332,11 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	public function save(array $jform)
+	public function save(array $jform, $return_url = '')
 	{
 		$model = $this->getModel();
 		$model->save($jform);
-		$this->index();
+		$this->cancel($return_url);
 	}
 
 	/**
@@ -340,6 +355,7 @@ class Controller
 		$vars  = array();
 		if ($model)
 		{
+			\JToolbarHelper::addNew('add');
 			$state = $model->getState();
 			if ($limit !== false)
 			{
@@ -364,9 +380,13 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	public function cancel()
+	public function cancel($return_url = '')
 	{
-		$this->index();
+		if(!$return_url){
+			$input = \JFactory::getApplication()->input;
+			$return_url = 'index.php?option=' . $input->get('option') . '&controller=' . $input->get('controller',$this->getClassName()) . '&task=index';
+		}
+		\JFactory::getApplication()->redirect(\JRoute::_($return_url));
 	}
 
 	/**

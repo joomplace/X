@@ -36,7 +36,7 @@ class Model extends \JTable
 	 *
 	 * @since 1.0
 	 */
-	protected $_columns;
+	protected static $_columns;
 	/** @var  \Joomla\Registry\Registry $_user_state */
 	protected $_user_state;
 	/** @var string $_table */
@@ -81,28 +81,17 @@ class Model extends \JTable
 	 */
 	protected $_field_defenitions = array(
 		'id'       => array(
-			/** DB field type */
 			'mysql_type' => 'int(10) unsigned',
-			/** Joomla FormField type */
 			'type'       => 'hidden',
-			/** Joomla FormField filter */
 			'filter'     => 'integer',
-			/** group for xml purposes */
 			'group'      => '',
-			/** XML and FormField fieldset */
 			'fieldset'   => 'basic',
-			/** class for input */
 			'class'      => '',
-			/** read only; disabled */
 			'read_only'  => null,
-			/** can be null */
 			'nullable'   => false,
-			/** DB column default value and FormField defaul */
 			'default'    => null,
-			/** for DB column purposes */
 			'extra'      => 'auto_increment',
 		),
-		/** asset id is used for permissions rules linking */
 		'asset_id' => array(
 			'mysql_type' => 'int(10) unsigned',
 			'type'       => 'hidden',
@@ -113,7 +102,6 @@ class Model extends \JTable
 			'read_only'  => null,
 			'nullable'   => false,
 			'default'    => 0,
-			/** use hide_at to hide from auto genarating in some context */
 			'hide_at'    => array('list', 'read', 'form'),
 		),
 	);
@@ -148,12 +136,11 @@ class Model extends \JTable
 			 */
 			return false;
 		}
-		if (isset($this->field_defenitions))
+		if (isset($this->_fields))
 		{
 			$this->_field_defenitions = array_merge($this->_field_defenitions, $this->_fields);
 		}
 		$this->checkIntegrety();
-		$this->_columns = $db->getTableColumns($this->_table, false);
 		parent::__construct($this->_table, $this->_primary_key, $db);
 		if (!$this->onAfterInit())
 		{
@@ -162,7 +149,9 @@ class Model extends \JTable
 			 */
 			return false;
 		}
-		$this->load($conditions);
+		if($conditions){
+			$this->load($conditions);
+		}
 	}
 
 	/**
@@ -206,6 +195,7 @@ class Model extends \JTable
 				$this->checkField($field, $defenition['mysql_type'], $defenition['nullable'], $defenition['default'], base64_encode(json_encode($defenition)), (isset($defenition['extra']) ? $defenition['extra'] : ''));
 			}
 			self::$_integrety_checked[$this->_table] = true;
+			static::$_columns = $this->_db->getTableColumns($this->_table, false);
 		}
 
 		return $this->isIntegretyChecked();
@@ -323,7 +313,7 @@ class Model extends \JTable
 		{
 			$type .= ' CHARACTER SET ' . $this->_charset . ' COLLATE ' . $this->_charset . '_' . $this->_collation;
 		}
-		$sql .= $db->qn($name) . ' ' . $type . ' ' . ($is_null ? 'NULL' : 'NOT NULL') . ' ' . (is_null($default) ? '' : ('DEFAULT ' . $db->q($default)));
+		$sql .= $db->qn($name) . ' ' . ($type?$type:'text') . ' ' . ($is_null ? 'NULL' : 'NOT NULL') . ' ' . (is_null($default) ? '' : ('DEFAULT ' . $db->q($default)));
 		$sql .= ' COMMENT ' . $db->q($comment);
 		$sql .= ' ' . $extra;
 
@@ -861,7 +851,7 @@ class Model extends \JTable
 			 */
 			$active = true;
 		}
-		$paths = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
+		$paths = array_merge(Loader::getPathByPsr4(Helper::getClassParentNameSpacing($this) . '\\Layouts', '/', 'field'), Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/'));
 		if ($active)
 		{
 			$layout = new \JLayoutFile('publish');
