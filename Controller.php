@@ -219,7 +219,7 @@ class Controller
 	/**
 	 * Method to render Html markup of passed View
 	 *
-	 * @param string $view View name
+	 * @param string $view View name or view.layout
 	 * @param array  $vars Variables
 	 *
 	 * @return string Html markup

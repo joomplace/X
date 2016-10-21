@@ -102,13 +102,22 @@ class View implements \JView
 	{
 		extract($local_vars);
 		$toolbar = \JToolbar::getInstance();
+		$toolbar_html = '';
+		if(\JFactory::getApplication()->isSite() && !$sublayout){
+			$path    = Loader::findViewLayoutByNS($this->_view_name, 'toolbar', $this->getNamespace());
+			if($path){
+				include $path;
+				$toolbar_html = ob_get_contents();
+				ob_end_clean();
+			}
+		}
 		$path    = Loader::findViewLayoutByNS($this->_view_name, $this->getLayout() . $sublayout, $this->getNamespace());
 		ob_start();
 		include $path;
 		$return = ob_get_contents();
 		ob_end_clean();
 
-		return $return;
+		return $toolbar_html.$return;
 	}
 
 	/**

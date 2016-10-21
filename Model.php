@@ -104,6 +104,10 @@ class Model extends \JTable
 			'default'    => 0,
 			'hide_at'    => array('list', 'read', 'form'),
 		),
+		'ordering' => array(
+			'mysql_type' => 'int(11) unsigned',
+			'type' => 'hidden',
+		)
 	);
 	/**
 	 * Use this field to extend $_field_defenitions
