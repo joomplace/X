@@ -193,7 +193,7 @@ class Model extends \JTable
 					 */
 				}
 			}
-			$this->_columns = $this->_db->getTableColumns($this->_table, false);
+			static::$_columns = $this->_db->getTableColumns($this->_table, false);
 			foreach ($this->_field_defenitions as $field => $defenition)
 			{
 				$this->checkField($field, $defenition['mysql_type'], $defenition['nullable'], $defenition['default'], base64_encode(json_encode($defenition)), (isset($defenition['extra']) ? $defenition['extra'] : ''));
@@ -308,7 +308,7 @@ class Model extends \JTable
 	protected function fieldSql($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = '')
 	{
 		$db  = $this->_db;
-		$sql = 'ALTER TABLE ' . $db->qn($this->_table) . ' ' . (array_key_exists($name, $this->_columns) ? 'MODIFY' : 'ADD COLUMN') . ' ';
+		$sql = 'ALTER TABLE ' . $db->qn($this->_table) . ' ' . (array_key_exists($name, static::$_columns) ? 'MODIFY' : 'ADD COLUMN') . ' ';
 		if (strpos($type, 'text') !== false)
 		{
 			$type .= ' COLLATE ' . $this->_charset . '_' . $this->_collation;
@@ -379,12 +379,14 @@ class Model extends \JTable
 			{
 				$defenition['description'] = 'FORMFIELD_' . strtoupper($key) . '_DESC';
 			}
-			if ($set_values)
+			if ($set_values || $this->$key)
 			{
 				$defenition['default'] = $this->$key;
+				$defenition['value'] = $this->$key;
 			}
-			$defenition['name'] = $form_name . '[' . $key . ']';
-			$defenition['id']   = $form_name . '_' . $key . '';
+			$defenition['fieldname']   = $key;
+			$defenition['name'] = $key;
+			$defenition['id']   = $key;
 			$field              = $fieldset->addChild('field');
 			foreach ($defenition as $attr => $attr_value)
 			{
@@ -401,7 +403,8 @@ class Model extends \JTable
 				}
 			}
 		}
-		$form = Form::getInstance($name, $xml->asXML(), array(), true, false);
+		$form = Form::getInstance($name, $xml->asXML(), array('control'=>'jform'), true, false);
+		$form->bind($this->reveal());
 		/*
 		 * Register additional field types paths
 		 */
@@ -767,25 +770,20 @@ class Model extends \JTable
 		}
 		else
 		{
-			switch ($defenition['type'])
+			$field_processer = '_renderListControl' . $defenition['type'];
+			if (method_exists($this, $field_processer))
 			{
-				case 'user':
-					$this->_renderListControlUser($field);
-					break;
-				case 'text':
-					$this->_renderListControlText($field);
-					break;
-				case 'editor':
-					$this->_renderListControlEditor($field);
-					break;
-				case 'radio':
-					$this->_renderListControlRadio($field);
-					break;
-				default:
+				$this->$field_processer($field);
+			}else{
+				if(method_exists($this->_field_defenitions[$field]['type'],'renderHtml')){
+					$fieldClass = $this->_field_defenitions[$field]['type'];
+					$fieldClass = new $fieldClass;
+					$fieldClass->renderHtml($this->reveal(),$field);
+				}else{
 					echo "<pre>";
 					print_r($this->_field_defenitions[$field]);
 					echo "</pre>";
-					break;
+				}
 			}
 		}
 		$layout = ob_get_contents();
@@ -836,6 +834,16 @@ class Model extends \JTable
 	protected function _renderListControlEditor($field)
 	{
 		$this->_renderListControlText($field);
+	}
+
+	/**
+	 * Control for Calendar field type
+	 *
+	 * @param $field Column name
+	 */
+	protected function _renderListControlCalendar($field)
+	{
+		echo \JHtml::_('date',strtotime($this->$field));
 	}
 
 	/**

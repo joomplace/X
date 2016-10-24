@@ -21,6 +21,21 @@ class Controller
 	protected $_classreflection;
 	protected $_model;
 	protected $_models = array();
+	private $_storage = array();
+
+	public function setStorage($storage, $value)
+	{
+		$this->_storage[$storage] = $value;
+	}
+
+	public function getStorage($storage = null)
+	{
+		$data = new \Joomla\Registry\Registry($this->_storage);
+		if(is_null($storage)){
+			return $data;
+		}
+		return $data->get($storage,null);
+	}
 
 	/**
 	 * Controller constructor
@@ -226,14 +241,15 @@ class Controller
 	 *
 	 * @since 1.0
 	 */
-	protected function render($view, $vars)
+	protected function render($viewname, $vars)
 	{
-		$view = $this->getView($view);
+		$view = $this->getView($viewname);
 		$view->setNamespace($this->getClassParentNameSpacing());
 		foreach ($vars as $var => $value)
 		{
 			$view->setVar($var, $value);
 		}
+		$this->preRender($viewname, $view->getLayout(),$vars);
 
 		return $view->render('',$vars);
 	}
@@ -359,7 +375,7 @@ class Controller
 			$state = $model->getState();
 			if ($limit !== false)
 			{
-				$items = $model->getList($limitstart, $limit);
+				$items = $model->getList($limitstart, $limit, $this->getStorage('conditions'));
 			}
 			else
 			{
@@ -418,6 +434,10 @@ class Controller
 
 		// Close the application
 		\JFactory::getApplication()->close();
+	}
+
+	protected function preRender($viewname, $layout, &$vars){
+		extract($this->_storage);
 	}
 
 	/**

@@ -97,5 +97,4 @@ class Form extends \JForm
 		return $return;
 	}
 
-
 }
