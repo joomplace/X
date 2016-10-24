@@ -9,6 +9,8 @@
 
 namespace Joomplace\Library\JooYii\Fields;
 
+jimport('joomla.form.helper');
+\JFormHelper::loadFieldClass('list');
 /**
  * Dynamic list field type
  *

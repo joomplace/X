@@ -209,7 +209,6 @@ class Loader
 			foreach ($filePath as $path)
 			{
 				$classFilePath = $path . $internal . DIRECTORY_SEPARATOR . $classFile;
-
 				$return[] = $classFilePath;
 			}
 		}

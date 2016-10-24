@@ -101,14 +101,14 @@ abstract class Component extends \JControllerBase
 		$cconfig = \JComponentHelper::getParams($input->get('option'));
 
 		$json_input    = json_decode(file_get_contents('php://input'));
-		$json_registry = new \Joomla\Registry\Registry();
-		if ($json_input)
-		{
-			foreach ($json_input as $key => $value)
-			{
-				$json_registry->set($key, $value);
-			}
-		}
+		$json_registry = new \Joomla\Registry\Registry($json_input);
+//		if ($json_input)
+//		{
+//			foreach ($json_input as $key => $value)
+//			{
+//				$json_registry->set($key, $value);
+//			}
+//		}
 
 		$controller = $input->getString('controller', static::$_default_controller);
 		$task       = $input->getString('task', $json_registry->get('task', ''));
