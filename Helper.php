@@ -9,6 +9,8 @@
 namespace Joomplace\Library\JooYii;
 
 use ReflectionMethod;
+use JText;
+use JFile;
 
 /**
  * Helper class for common good things
@@ -262,5 +264,108 @@ class Helper
 		}
 
 		return $form_el;
+	}
+
+	public static function reveal($obj){
+		return array_filter(get_object_vars($obj), function ($key)
+		{
+			if (strpos($key, '_') === 0)
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}, ARRAY_FILTER_USE_KEY);
+	}
+
+	public static function uploadFile(array $file, $path,array $validFileTypes = array(),array $validFileExts = array()){
+		jimport('joomla.filesystem.file');
+		jimport('joomla.filesystem.folder');
+
+		$fileError = $file['error'];
+		if ($fileError > 0)
+		{
+			switch ($fileError)
+			{
+				case 1:
+					echo JText::_( 'FILE TO LARGE THAN PHP INI ALLOWS' );
+					return;
+
+				case 2:
+					echo JText::_( 'FILE TO LARGE THAN HTML FORM ALLOWS' );
+					return;
+
+				case 3:
+					echo JText::_( 'ERROR PARTIAL UPLOAD' );
+					return;
+
+				case 4:
+					echo JText::_( 'ERROR NO FILE' );
+					return;
+			}
+		}
+
+		$fileSize = $file['size'];
+		if($fileSize > 20000000)
+		{
+			echo JText::_( 'FILE BIGGER THAN 20MB' );
+		}
+
+		$fileName = $file['name'];
+		$uploadedFileNameParts = explode('.',$fileName);
+		$uploadedFileExtension = array_pop($uploadedFileNameParts);
+
+		$extOk = true;
+		if($validFileExts){
+			$extOk = false;
+			foreach($validFileExts as $key => $value)
+			{
+				if( preg_match("/$value/i", $uploadedFileExtension ) )
+				{
+					$extOk = true;
+				}
+			}
+		}
+
+		if ($extOk == false)
+		{
+			echo JText::_( 'INVALID EXTENSION' );
+			return;
+		}
+
+		$fileTemp = $file['tmp_name'];
+
+		$invalidMime = false;
+		if($validFileTypes && !in_array(mime_content_type($fileTemp), $validFileTypes)){
+			$invalidMime = true;
+		}
+
+		//lose any special characters in the filename
+		$fileName = preg_replace("/[^A-Za-z0-9\\.]/i", "-", $fileName);
+
+		$uploadPath = JPATH_SITE . '/'.$path;
+		$uploadPath = '/'.trim($uploadPath,'/\\').'/'.$fileName;
+
+		if(is_file($uploadPath)){
+			echo JText::_( 'File '.$fileName.' already exists' );
+			return false;
+		}
+		if(!JFile::upload($fileTemp, $uploadPath))
+		{
+			echo JText::_( 'ERROR MOVING FILE' );
+			return false;
+		}
+		else
+		{
+			return str_replace(JPATH_SITE,'',$uploadPath);
+		}
+	}
+
+	public static function moveFile($from, $to){
+		jimport('joomla.filesystem.file');
+		jimport('joomla.filesystem.folder');
+		return JFile::move($from,$to);
 	}
 }

@@ -179,7 +179,16 @@ class Controller
 				{
 					echo 'smth went wrong';
 				}
+				break;
+			case 'field':
+				$field = \JFactory::getApplication()->input->get('field_type','','safe_html');
+				$field_method = \JFactory::getApplication()->input->get('field_method','process','string');
+				if($field && method_exists($field,$field_method)){
+					Helper::callBindedFunction($field,$field_method);
+				}
+				break;
 		}
+		die('exit'); // we never must go this far...
 	}
 
 	/**
@@ -301,7 +310,9 @@ class Controller
 	public function apply(array $jform, $tonew = false, $return_url = '')
 	{
 		$model = $this->getModel();
-		$model->save($jform);
+		if(!$model->save($jform)){
+			$tonew = false;
+		}
 		if (!$tonew)
 		{
 			$key = $model->getKeyName();

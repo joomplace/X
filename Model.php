@@ -879,6 +879,15 @@ class Model extends \JTable
 		}
 	}
 
+	public function callOnField($field, $method){
+		if(method_exists($this->_field_defenitions[$field]['type'],$method)){
+			$fieldClass = $this->_field_defenitions[$field]['type'];
+			$fieldClass = new $fieldClass;
+			return $fieldClass->$method($this->reveal(),$field);
+		}
+		return false;
+	}
+
 	/**
 	 * Control for list item actions
 	 *
@@ -987,7 +996,25 @@ class Model extends \JTable
 			$this->ordering = $this->getNextOrder();
 		}
 
-		return parent::store($updateNulls);
+		foreach ($this->_field_defenitions as $field => $fdata){
+			if(method_exists($fdata['type'],'onBeforeStore')){
+				if(!call_user_func_array(array($fdata['type'],'onBeforeStore'), array(&$this, $field, $fdata))){
+					return false;
+				}
+			}
+		}
+
+		$return = parent::store($updateNulls);
+
+		foreach ($this->_field_defenitions as $field => $fdata){
+			if(method_exists($fdata['type'],'onAfterStore')){
+				if(!call_user_func(array($fdata['type'],'onAfterStore'), array(&$this, $field, $fdata))){
+					$return = false;
+				}
+			}
+		}
+
+		return $return;
 	}
 
 	/**
@@ -1124,17 +1151,7 @@ class Model extends \JTable
 	 */
 	public function reveal()
 	{
-		return array_filter(get_object_vars($this), function ($key)
-		{
-			if (strpos($key, '_') === 0)
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}, ARRAY_FILTER_USE_KEY);
+		return Helper::reveal($this);
 	}
 
 }
