@@ -310,8 +310,23 @@ class Controller
 	public function apply(array $jform, $tonew = false, $return_url = '')
 	{
 		$model = $this->getModel();
-		if(!$model->save($jform)){
+		$form = $model->getForm();
+//		$jform = $form->filter($jform);
+		/** @var \Joomla\Registry\Registry $data */
+		$form->bind($jform);
+		/* recursive jform */
+		$rjform = $form->getData()->toArray();
+		$return = $form->validate($rjform);
+		if (!$return)
+		{
+			array_map(function($e){
+				\JFactory::getApplication()->enqueueMessage($e->getMessage(),'error');
+			},$form->getErrors());
 			$tonew = false;
+		}else{
+			if(!$model->save($jform)){
+				$tonew = false;
+			}
 		}
 		if (!$tonew)
 		{
@@ -448,7 +463,7 @@ class Controller
 	}
 
 	protected function preRender($viewname, $layout, &$vars){
-		extract($this->_storage);
+		call_user_func_array(array(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar','setControllersEntries'),array($viewname,$layout));
 	}
 
 	/**
