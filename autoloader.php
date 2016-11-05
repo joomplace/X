@@ -112,6 +112,10 @@ class Loader
 		return $paths;
 	}
 
+	public static function getClassScope($class){
+		return self::parseClass($class, 'php', 'scope');
+	}
+
 	/**
 	 * Extract paths by class name
 	 *
@@ -125,66 +129,8 @@ class Loader
 	 */
 	public static function extractPaths($class, $ext = 'php', $override_logic = false)
 	{
-
-		// Remove the root backslash if present.
-		if ($class[0] == '\\')
-		{
-			$class = substr($class, 1);
-		}
-		// Find the location of the last NS separator.
-		$pos = strrpos($class, '\\');
-		// If one is found, we're dealing with a NS'd class.
-		if ($pos !== false)
-		{
-			$classPath = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $pos)) . DIRECTORY_SEPARATOR;
-			$className = substr($class, $pos + 1);
-		}
-		// If not, no need to parse path.
-		else
-		{
-			$classPath = null;
-			$className = $class;
-		}
-		$classFile = $className . ($ext == '/' ? '' : ('.' . $ext));
-		// Applying logic of "vendor - extension type" on path
-		$filePath       = array();
-		$classPathParts = array_filter(explode(DIRECTORY_SEPARATOR, $classPath));
-		// If no $classPathParts then we have nothing to autoload by PSR-4
-		// And everything that have no $classPathParts needs to register namespaces, also processed in PSR-0
-		$return              = array();
-		$overridable_element = '';
-		if ($classPathParts)
-		{
-			$vendor_check = ucfirst($classPathParts[0]);
-			$type_check   = ucfirst($classPathParts[1]);
-			unset($classPathParts[0]);
-			unset($classPathParts[1]);
-			switch ($type_check)
-			{
-				case 'Library':
-					$overridable_element = 'library';
-					$filePath[]          = JPATH_LIBRARIES;
-					$filePath[]          = JPATH_LIBRARIES . DIRECTORY_SEPARATOR . $vendor_check;
-					break;
-				/*
-				 * Component
-				 */
-				default:
-					$overridable_element = 'com_' . strtolower($type_check);
-					switch (ucfirst($classPathParts[2]))
-					{
-						case 'Admin':
-							$is_admin   = true;
-							$filePath[] = JPATH_ADMINISTRATOR . '/components/' . 'com_' . strtolower($type_check);
-							break;
-						case 'Site':
-							$is_admin   = false;
-							$filePath[] = JPATH_ROOT . '/components/' . 'com_' . strtolower($type_check);
-							break;
-					}
-					unset($classPathParts[2]);
-			}
-
+		list($classFile, $filePath, $classPathParts, $return, $overridable_element, $is_admin) = self::parseClass($class, $ext);
+		if($filePath){
 			$internal = implode(DIRECTORY_SEPARATOR, $classPathParts);
 			$internal = $internal ? (DIRECTORY_SEPARATOR . $internal) : '';
 			switch ($override_logic)
@@ -268,6 +214,80 @@ class Loader
 		$paths = self::extractExistingPaths($class, $ext, $override_logic);
 
 		return $paths;
+	}
+
+	/**
+	 * @param $class
+	 * @param $ext
+	 *
+	 * @return array
+	 */
+	protected static function parseClass($class, $ext, $return_break = '')
+	{
+		// Remove the root backslash if present.
+		if ($class[0] == '\\')
+		{
+			$class = substr($class, 1);
+		}
+		// Find the location of the last NS separator.
+		$pos = strrpos($class, '\\');
+		// If one is found, we're dealing with a NS'd class.
+		if ($pos !== false)
+		{
+			$classPath = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $pos)) . DIRECTORY_SEPARATOR;
+			$className = substr($class, $pos + 1);
+		}
+		// If not, no need to parse path.
+		else
+		{
+			$classPath = null;
+			$className = $class;
+		}
+		$classFile = $className . ($ext == '/' ? '' : ('.' . $ext));
+		// Applying logic of "vendor - extension type" on path
+		$filePath       = array();
+		$classPathParts = array_filter(explode(DIRECTORY_SEPARATOR, $classPath));
+		// If no $classPathParts then we have nothing to autoload by PSR-4
+		// And everything that have no $classPathParts needs to register namespaces, also processed in PSR-0
+		$return              = array();
+		$overridable_element = '';
+		$is_admin = false;
+		if($classPathParts){
+			$vendor_check = ucfirst($classPathParts[0]);
+			$type_check   = ucfirst($classPathParts[1]);
+			unset($classPathParts[0]);
+			unset($classPathParts[1]);
+			switch ($type_check)
+			{
+				case 'Library':
+					$overridable_element = 'library';
+					$filePath[]          = JPATH_LIBRARIES;
+					$filePath[]          = JPATH_LIBRARIES . DIRECTORY_SEPARATOR . $vendor_check;
+					break;
+				/*
+				 * Component
+				 */
+				default:
+					if($return_break=='scope'){
+						return $type_check;
+					}
+					$overridable_element = 'com_' . strtolower($type_check);
+					switch (ucfirst($classPathParts[2]))
+					{
+						case 'Admin':
+							$is_admin   = true;
+							$filePath[] = JPATH_ADMINISTRATOR . '/components/' . 'com_' . strtolower($type_check);
+							break;
+						case 'Site':
+							$is_admin   = false;
+							$filePath[] = JPATH_ROOT . '/components/' . 'com_' . strtolower($type_check);
+							break;
+					}
+					unset($classPathParts[2]);
+			}
+		}
+
+		return array($classFile, $filePath, $classPathParts, $return, $overridable_element, $is_admin);
 	}
 }
 

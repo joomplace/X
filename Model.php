@@ -8,6 +8,8 @@
 
 namespace Joomplace\Library\JooYii;
 
+use Joomplace\Customfields\Admin\Model\CustomfieldValue;
+
 jimport('joomla.database.table');
 
 /**
@@ -19,7 +21,7 @@ jimport('joomla.database.table');
  *
  * @since   1.0
  */
-class Model extends \JTable
+abstract class Model extends \JTable
 {
 	/**
 	 * Array of tables names as key and state of integrety as value
@@ -40,7 +42,8 @@ class Model extends \JTable
 	/** @var  \Joomla\Registry\Registry $_user_state */
 	protected $_user_state;
 	/** @var string $_table */
-	protected $_table = '#__jtable_test';
+	protected $_table;
+	protected $_context;
 	protected $_total = 0;
 	protected $_offset = 0;
 	protected $_limit = 0;
@@ -118,6 +121,8 @@ class Model extends \JTable
 	 */
 	protected $_fields = array();
 
+	abstract protected function determine();
+
 	/**
 	 * Model constructor.
 	 *
@@ -128,6 +133,7 @@ class Model extends \JTable
 	 */
 	public function __construct($conditions = null)
 	{
+		$this->determine();
 //	    \JPluginHelper::importPlugin( 'jooyii' );
 //	    $dispatcher = \JEventDispatcher::getInstance();
 //	    $results = $dispatcher->trigger( 'onCdAddedToLibrary', array( &$artist, &$title ) );
@@ -146,6 +152,7 @@ class Model extends \JTable
 		}
 		$this->checkIntegrety();
 		parent::__construct($this->_table, $this->_primary_key, $db);
+		$this->mixInCustomFields();
 		if (!$this->onAfterInit())
 		{
 			/*
@@ -157,6 +164,24 @@ class Model extends \JTable
 			$this->load($conditions);
 		}
 	}
+
+	public function load($keys = null, $reset = true)
+	{
+		$return = parent::load($keys, $reset);
+		$item = $this;
+		array_map(function($field) use (&$item){
+			$prefix = 'cust.'.$item->_context;
+			$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
+			/** @var \Joomplace\Customfields\Admin\Model\CustomfieldValue $cvmodel */
+			$cvmodel = new $processing_class();
+			if(strpos($field,$prefix)===0){
+				$cvmodel->load(array('key'=>$field,'item'=>$item->id),true);
+				$item->$field = $cvmodel->value;
+			}
+		},array_keys($this->_field_defenitions));
+		return $return;
+	}
+
 
 	/**
 	 * Use for tweaking of initiation process
@@ -317,7 +342,7 @@ class Model extends \JTable
 		{
 			$type .= ' CHARACTER SET ' . $this->_charset . ' COLLATE ' . $this->_charset . '_' . $this->_collation;
 		}
-		$sql .= $db->qn($name) . ' ' . ($type?$type:'text') . ' ' . ($is_null ? 'NULL' : 'NOT NULL') . ' ' . (is_null($default) ? '' : ('DEFAULT ' . $db->q($default)));
+		$sql .= $db->qn($name) . ' ' . ($type?$type:'text') . ' ' . ($is_null ? 'NULL' : 'NOT NULL') . ' ' . ((is_null($default)||strpos($type, 'text') !== false) ? '' : ('DEFAULT ' . $db->q($default)));
 		$sql .= ' COMMENT ' . $db->q($comment);
 		$sql .= ' ' . $extra;
 
@@ -383,6 +408,11 @@ class Model extends \JTable
 			{
 				$defenition['default'] = $this->$key;
 				$defenition['value'] = $this->$key;
+			}else{
+				$defenition['default'] = $defenition['value'] = \JFactory::getApplication()->input->get($key,$defenition['default']);
+			}
+			if(in_array('form',$defenition['hide_at'])){
+				$defenition['type'] = 'hidden';
 			}
 			$defenition['fieldname']   = $key;
 			$defenition['name'] = $key;
@@ -777,6 +807,7 @@ class Model extends \JTable
 			}else{
 				if(method_exists($this->_field_defenitions[$field]['type'],'renderHtml')){
 					$fieldClass = $this->_field_defenitions[$field]['type'];
+					// TODO: change to user call
 					$fieldClass = new $fieldClass;
 					$fieldClass->renderHtml($this->reveal(),$field);
 				}else{
@@ -824,6 +855,22 @@ class Model extends \JTable
 	protected function _renderListControlText($field)
 	{
 		echo Helper::trimText($this->$field, 75);
+	}
+
+	/**
+	 * Control for Checkboxes field type
+	 *
+	 * @param $field Column name
+	 *
+	 *
+	 * @since 1.0
+	 */
+	protected function _renderListControlCheckboxes($field)
+	{
+		list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
+		$displayData = array('value'=>$this->$field);
+		$html = \JLayoutHelper::render('list.fields.checkboxes', $displayData, $def_path);
+		echo $html;
 	}
 
 	/**
@@ -1004,7 +1051,30 @@ class Model extends \JTable
 			}
 		}
 
+		/**
+		 * Walking and preparing custom fields with right context for storing
+		 */
+		$item = $this;
+		$cfs_data = array_filter(array_map(function($key) use ($item){
+			$prefix = 'cust.'.$item->_context;
+			if(strpos($key,$prefix)===0){
+				$arr = array('key'=>$key,'value'=>$item->$key);
+				unset($item->$key);
+				return $arr;
+			}
+		},array_keys($this->getProperties())));
+
 		$return = parent::store($updateNulls);
+		/**
+		 * Walk and store $cfs_data
+		 */
+		$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
+		/** @var \Joomplace\Customfields\Admin\Model\CustomfieldValue $cvmodel */
+		$cvmodel = new $processing_class();
+		$return = (array_search(false, array_map(function($cfv) use ($item, $cvmodel){
+			$cfv['item'] = $item->id;
+			return $cvmodel->save($cfv);
+		},$cfs_data)))?false:$return;
 
 		foreach ($this->_field_defenitions as $field => $fdata){
 			if(method_exists($fdata['type'],'onAfterStore')){
@@ -1142,8 +1212,10 @@ class Model extends \JTable
 		}
 	}
 
+
 	/**
 	 * Get public avaliable values
+	 * equal to $this->getProperties()
 	 *
 	 * @return array Field name as key and value as value
 	 *
@@ -1152,6 +1224,28 @@ class Model extends \JTable
 	public function reveal()
 	{
 		return Helper::reveal($this);
+	}
+
+	protected function mixInCustomFields()
+	{
+		if (strpos(Helper::getClassName($this),'Customfield')!==0)
+		{
+			$customfieldsClass = '\\Joomplace\\Customfields\\Admin\\Model\\CustomField';
+			if (class_exists($customfieldsClass))
+			{
+				/** @var \Joomplace\Customfields\Admin\Model\Customfield $cFields */
+				$cFields = new $customfieldsClass();
+				$cFields->setState('list.ordering','ordering');
+				$cflist  = $cFields->getList(false, false, array('context' => $this->_context));
+				$model   = $this;
+				array_map(function ($item) use ($model)
+				{
+					$field = $item->name;
+					$model->$field = '';
+					$model->_field_defenitions[$field] = json_decode($item->definition, true);
+				}, $cflist);
+			}
+		}
 	}
 
 }

@@ -38,15 +38,18 @@ class Helper
 	 *
 	 * @since 1.0
 	 */
-	public static function getClassName($obj)
+	public static function getClassName($obj, $short = true)
 	{
 		$class = get_class($obj);
 		if (!isset(self::$_classreflections[$class]))
 		{
 			self::saveClassReflection($obj);
 		}
-
-		return self::$_classreflections[$class]->getShortName();
+		if($short){
+			return self::$_classreflections[$class]->getShortName();
+		}else{
+			return self::$_classreflections[$class]->getName();
+		}
 	}
 
 	/**
@@ -214,7 +217,7 @@ class Helper
 			{
 				if (!$param->isDefaultValueAvailable())
 				{
-					trigger_error("Need to define $param->name", E_USER_ERROR);
+					throw new \Exception("Need to define $param->name", 500);
 				}
 				else
 				{
@@ -367,5 +370,11 @@ class Helper
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
 		return JFile::move($from,$to);
+	}
+
+	public static function isJson($string) {
+		return ((is_string($string) &&
+			(is_object(json_decode($string)) ||
+				is_array(json_decode($string))))) ? true : false;
 	}
 }

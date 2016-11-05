@@ -102,6 +102,7 @@ class View implements \JView
 	{
 		extract($local_vars);
 		$toolbar = \JToolbar::getInstance();
+		$sidebar = \JHtmlSidebar::render();
 		$toolbar_html = '';
 		if(\JFactory::getApplication()->isSite() && !$sublayout){
 			$path    = Loader::findViewLayoutByNS($this->_view_name, 'toolbar', $this->getNamespace());
@@ -161,6 +162,16 @@ class View implements \JView
 	public function setNamespace($namespace)
 	{
 		$this->_namespace = $namespace;
+	}
+
+	/**
+	 * @return string
+	 *
+	 * @since 1.0
+	 */
+	public function getViewName()
+	{
+		return $this->_view_name;
 	}
 
 }
