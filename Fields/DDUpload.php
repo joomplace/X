@@ -13,6 +13,7 @@ use Joomplace\Library\JooYii\Helper;
 use Joomplace\Library\JooYii\Loader;
 
 jimport('joomla.form.helper');
+jimport( 'joomla.filesystem.file' );
 \JFormHelper::loadFieldClass('list');
 /**
  * Dynamic list field type
@@ -55,6 +56,20 @@ class DDUpload extends \JFormField
 
 	public static function process(){
 		if(\JSession::checkToken('get')){
+			$config = \JFactory::getConfig();
+            $lifetime = $config->get('lifetime');
+
+            $tmp_path = JPATH_ROOT . '/tmp/'.\JFactory::getApplication()->input->get('path',null,'PATH');
+            $photos = scandir($tmp_path);
+
+            foreach ($photos as $photo) {
+                $photo_path = $tmp_path."/".$photo;
+                $status = stat($photo_path);
+                if ($status['ctime'] + $lifetime*60 < time()) {
+                    \JFILE::delete($photo_path);
+                }
+            }
+
 			list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
 			$params = array();
 			$file = \JFactory::getApplication()->input->files->get('file',array(),'ARRAY');
@@ -86,10 +101,6 @@ class DDUpload extends \JFormField
 			return $item;
 		},$model->$name);
 		$model->$name = json_encode($model->$name);
-		echo "<pre>";
-		print_r($model);
-		echo "</pre>";
-		die('');
 		/*
 		 * Move files from tmp to normal directory
 		 */
@@ -102,4 +113,19 @@ class DDUpload extends \JFormField
 		 */
 		return true;
 	}
+
+    public function onBeforeDelete(&$model, $name, $defenition){
+        foreach (json_decode($model->$name) as $path) {
+            \JFile::delete(JPATH_ROOT.$path);
+        }
+
+        return true;
+    }
+
+    public function onAfterDelete (&$model, $name, $defenition){
+        /*
+         * onAfterDelete
+         */
+        return true;
+    }
 }

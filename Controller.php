@@ -8,6 +8,7 @@
 
 namespace Joomplace\Library\JooYii;
 
+jimport( 'joomla.filesystem.file' );
 /**
  * Controller class for implementing C letter of new Joomla!CMS MVC
  * (JooYii MVC)
@@ -311,6 +312,7 @@ class Controller
 	{
 		$model = $this->getModel();
 		$form = $model->getForm();
+		$this->deletePrevPhotos($model, $jform);
 //		$jform = $form->filter($jform);
 		/** @var \Joomla\Registry\Registry $data */
 		$form->bind($jform);
@@ -377,6 +379,7 @@ class Controller
 	public function save(array $jform, $return_url = '')
 	{
 		$model = $this->getModel();
+		$this->deletePrevPhotos($model, $jform);
 		$model->save($jform);
 		$this->cancel($return_url);
 	}
@@ -495,4 +498,18 @@ class Controller
 		exit();
 	}
 
+
+	protected function deletePrevPhotos($model, $data) {
+		$key = $model->getKeyName();
+		$model->load($data[$key]);
+		foreach ($model as $cell) {
+			if (is_array(json_decode($cell))) {
+				foreach ($json_decode($cell) as $file) {
+					if (file_exists(JPATH_ROOT.$file)) {
+						\JFile::delete(JPATH_ROOT.$file);
+					}
+				}
+			}
+		}
+	}
 }
