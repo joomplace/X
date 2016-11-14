@@ -73,6 +73,7 @@ class DDUpload extends \JFormField
 			list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
 			$params = array();
 			$file = \JFactory::getApplication()->input->files->get('file',array(),'ARRAY');
+            $file['name'] = substr_replace($file['name'], mktime(), strrpos($file['name'], '.')).substr($file['name'], strrpos($file['name'], '.'));
 			$params['file_name'] = $file['name'];
 			if($file && $file = Helper::uploadFile($file, 'tmp/'.\JFactory::getApplication()->input->get('path',null,'PATH'))){
 				$params['file'] = $file;

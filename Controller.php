@@ -504,7 +504,7 @@ class Controller
 		$model->load($data[$key]);
 		foreach ($model as $cell) {
 			if (is_array(json_decode($cell))) {
-				foreach ($json_decode($cell) as $file) {
+				foreach (json_decode($cell) as $file) {
 					if (file_exists(JPATH_ROOT.$file)) {
 						\JFile::delete(JPATH_ROOT.$file);
 					}
