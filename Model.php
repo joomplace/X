@@ -38,7 +38,14 @@ abstract class Model extends \JTable
 	 *
 	 * @since 1.0
 	 */
-	protected static $_columns;
+	protected static $_columns = array();
+	/**
+	 * Custom fields for current context
+	 * @var array $_cflist
+	 *
+	 * @since 1.0
+	 */
+	protected static $_cflist = null;
 	/** @var  \Joomla\Registry\Registry $_user_state */
 	protected $_user_state;
 	/** @var string $_table */
@@ -206,7 +213,7 @@ abstract class Model extends \JTable
 	 */
 	protected function checkIntegrety($force = false)
 	{
-		if (!$this->isIntegretyChecked() || $force)
+		if (!self::$_integrety_checked[$this->_table] || $force)
 		{
 			$tables = $this->_db->getTableList();
 			if (!in_array(str_replace('#__', $this->_db->getPrefix(), $this->_table), $tables))
@@ -218,13 +225,13 @@ abstract class Model extends \JTable
 					 */
 				}
 			}
-			static::$_columns = $this->_db->getTableColumns($this->_table, false);
+			self::$_columns[$this->_table] = $this->_db->getTableColumns($this->_table, false);
 			foreach ($this->_field_defenitions as $field => $defenition)
 			{
 				$this->checkField($field, $defenition['mysql_type'], $defenition['nullable'], $defenition['default'], base64_encode(json_encode($defenition)), (isset($defenition['extra']) ? $defenition['extra'] : ''));
 			}
 			self::$_integrety_checked[$this->_table] = true;
-			static::$_columns = $this->_db->getTableColumns($this->_table, false);
+			self::$_columns[$this->_table] = $this->_db->getTableColumns($this->_table, false);
 		}
 
 		return $this->isIntegretyChecked();
@@ -278,7 +285,7 @@ abstract class Model extends \JTable
 	{
 		/** @var \JDatabaseDriver $db */
 		$db     = $this->_db;
-		$column = isset($this->_columns[$name]) ? ((array) $this->_columns[$name]) : array();
+		$column = isset(self::$_columns[$this->_table][$name]) ? ((array) self::$_columns[$this->_table][$name]) : array();
 		$sql    = $this->fieldSql($name, $type, $is_null, $default, $comment, $extra);
 		$chitem = \JSchemaChangeitem::getInstance($db, null, $sql);
 		if ($chitem->checkQueryExpected)
@@ -298,7 +305,11 @@ abstract class Model extends \JTable
 				}
 				elseif (($column['Null'] == 'NO' && !$is_null) || ($column['Null'] == 'YES' && $is_null))
 				{
-					$chitem->checkStatus = -2;
+					/*
+					 * is_null sheck commented out because of causing some issues.
+					 * Might need so help to bring it back
+					 */
+					/*$chitem->checkStatus = -2;*/
 				}
 				elseif ($column['Default'] != $default)
 				{
@@ -333,7 +344,7 @@ abstract class Model extends \JTable
 	protected function fieldSql($name, $type = 'text', $is_null = false, $default = false, $comment = '', $extra = '')
 	{
 		$db  = $this->_db;
-		$sql = 'ALTER TABLE ' . $db->qn($this->_table) . ' ' . (array_key_exists($name, static::$_columns) ? 'MODIFY' : 'ADD COLUMN') . ' ';
+		$sql = 'ALTER TABLE ' . $db->qn($this->_table) . ' ' . (array_key_exists($name, self::$_columns[$this->_table]) ? 'MODIFY' : 'ADD COLUMN') . ' ';
 		if (strpos($type, 'text') !== false)
 		{
 			$type .= ' COLLATE ' . $this->_charset . '_' . $this->_collation;
@@ -1234,16 +1245,18 @@ abstract class Model extends \JTable
 			if (class_exists($customfieldsClass))
 			{
 				/** @var \Joomplace\Customfields\Admin\Model\Customfield $cFields */
-				$cFields = new $customfieldsClass();
-				$cFields->setState('list.ordering','ordering');
-				$cflist  = $cFields->getList(false, false, array('context' => $this->_context));
+				if(is_null(static::$_cflist)){
+					$cFields = new $customfieldsClass();
+					$cFields->setState('list.ordering','ordering');
+					static::$_cflist  = $cFields->getList(false, false, array('context' => $this->_context));
+				}
 				$model   = $this;
 				array_map(function ($item) use ($model)
 				{
 					$field = $item->name;
 					$model->$field = '';
 					$model->_field_defenitions[$field] = json_decode($item->definition, true);
-				}, $cflist);
+				}, static::$_cflist);
 			}
 		}
 	}

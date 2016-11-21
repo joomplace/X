@@ -9,9 +9,12 @@
 
 defined('JPATH_PLATFORM') or die;
 extract($displayData);
-
-echo "<ul>";
-foreach ($value as $v){
-	echo "<li>$v</li>";
+if($value){
+	echo "<ul>";
+	foreach ($value as $v){
+		echo "<li>$v</li>";
+	}
+	echo "</ul>";
+}else{
+	echo JText::_('NO_VALUE');
 }
-echo "</ul>";

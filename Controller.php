@@ -463,7 +463,9 @@ class Controller
 	}
 
 	protected function preRender($viewname, $layout, &$vars){
-		call_user_func_array(array(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar','setControllersEntries'),array($viewname,$layout));
+		if(class_exists(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar')){
+			call_user_func_array(array(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar','setControllersEntries'),array($viewname,$layout));
+		}
 	}
 
 	/**
