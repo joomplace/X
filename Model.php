@@ -39,6 +39,13 @@ abstract class Model extends \JTable
 	 * @since 1.0
 	 */
 	protected static $_columns = array();
+	/**
+	 * Custom fields for current context
+	 * @var array $_cflist
+	 *
+	 * @since 1.0
+	 */
+	protected static $_cflist = null;
 	/** @var  \Joomla\Registry\Registry $_user_state */
 	protected $_user_state;
 	/** @var string $_table */
@@ -1238,16 +1245,18 @@ abstract class Model extends \JTable
 			if (class_exists($customfieldsClass))
 			{
 				/** @var \Joomplace\Customfields\Admin\Model\Customfield $cFields */
-				$cFields = new $customfieldsClass();
-				$cFields->setState('list.ordering','ordering');
-				$cflist  = $cFields->getList(false, false, array('context' => $this->_context));
+				if(is_null(static::$_cflist)){
+					$cFields = new $customfieldsClass();
+					$cFields->setState('list.ordering','ordering');
+					static::$_cflist  = $cFields->getList(false, false, array('context' => $this->_context));
+				}
 				$model   = $this;
 				array_map(function ($item) use ($model)
 				{
 					$field = $item->name;
 					$model->$field = '';
 					$model->_field_defenitions[$field] = json_decode($item->definition, true);
-				}, $cflist);
+				}, static::$_cflist);
 			}
 		}
 	}
