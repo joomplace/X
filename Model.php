@@ -176,16 +176,19 @@ abstract class Model extends \JTable
 	{
 		$return = parent::load($keys, $reset);
 		$item = $this;
-		array_map(function($field) use (&$item){
-			$prefix = 'cust.'.$item->_context;
-			$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
-			/** @var \Joomplace\Customfields\Admin\Model\CustomfieldValue $cvmodel */
+		$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
+		if(class_exists($processing_class)){
 			$cvmodel = new $processing_class();
-			if(strpos($field,$prefix)===0){
-				$cvmodel->load(array('key'=>$field,'item'=>$item->id),true);
-				$item->$field = $cvmodel->value;
-			}
-		},array_keys($this->_field_defenitions));
+			$prefix = 'cust.'.$item->_context;
+			$values = $cvmodel->getList(false,false,array('context'=>$this->_context,'item'=>$item->id));
+			$keys = array_keys($this->_field_defenitions);
+			array_walk($values, function(&$data,$key) use(&$item,$prefix,$keys){
+				$field = $prefix.'.'.$key;
+				if(in_array($field,$keys)){
+					$item->$field = $data->value;
+				}
+			});
+		}
 		return $return;
 	}
 
