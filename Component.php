@@ -93,36 +93,35 @@ abstract class Component extends \JControllerBase
 	 */
 	public function execute()
 	{
+		try
+		{
+			$this->preExecution();
 
-		$this->preExecution();
+			$gconfig = \JFactory::getConfig();
+			$input   = $this->getInput();
+			$cconfig = \JComponentHelper::getParams($input->get('option'));
 
-		$gconfig = \JFactory::getConfig();
-		$input   = $this->getInput();
-		$cconfig = \JComponentHelper::getParams($input->get('option'));
+			$json_input    = json_decode(file_get_contents('php://input'));
+			$json_registry = new \Joomla\Registry\Registry($json_input);
 
-		$json_input    = json_decode(file_get_contents('php://input'));
-		$json_registry = new \Joomla\Registry\Registry($json_input);
-//		if ($json_input)
-//		{
-//			foreach ($json_input as $key => $value)
-//			{
-//				$json_registry->set($key, $value);
-//			}
-//		}
+			$controller = $input->getString('controller', static::$_default_controller);
+			$task       = $input->getString('task', $json_registry->get('task', ''));
+			if(!$task){
+				$task = static::$_default_task;
+			}
+			$task = explode('.', $task);
+			$action = $task[0];
+			$input->set('view', $input->getString('view', $controller));
 
-		$controller = $input->getString('controller', static::$_default_controller);
-		$task       = $input->getString('task', $json_registry->get('task', ''));
-		if(!$task){
-			$task = static::$_default_task;
+			$controllerClass = $this->getController($this->_namespace . '\\Controller\\' . $controller);
+
+			\Joomplace\Library\JooYii\Helper::callBindedFunction($controllerClass, $action, array($json_registry, $input, $cconfig, $gconfig));
+
 		}
-		$task = explode('.', $task);
-		$action = $task[0];
-		$input->set('view', $input->getString('view', $controller));
-
-		$controllerClass = $this->getController($this->_namespace . '\\Controller\\' . $controller);
-
-		\Joomplace\Library\JooYii\Helper::callBindedFunction($controllerClass, $action, array($input, $json_registry, $cconfig, $gconfig));
-
+		catch (\Exception $e)
+		{
+			\JLog::add($e->getMessage(), \JLog::ERROR, 'jerror');
+		}
 		return true;
 	}
 
