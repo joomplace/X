@@ -180,7 +180,7 @@ abstract class Model extends \JTable
 		if(class_exists($processing_class)){
 			$cvmodel = new $processing_class();
 			$prefix = 'cust.'.$item->_context;
-			$values = $cvmodel->getList(false,false,array('context'=>$this->_context,'item'=>$item->id));
+			$values = $cvmodel->getList(false,0,array('context'=>$this->_context,'item'=>$item->id));
 			$keys = array_keys($this->_field_defenitions);
 			array_walk($values, function(&$data,$key) use(&$item,$prefix,$keys){
 				$field = $prefix.'.'.$key;
