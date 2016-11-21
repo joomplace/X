@@ -176,16 +176,19 @@ abstract class Model extends \JTable
 	{
 		$return = parent::load($keys, $reset);
 		$item = $this;
-		array_map(function($field) use (&$item){
-			$prefix = 'cust.'.$item->_context;
-			$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
-			/** @var \Joomplace\Customfields\Admin\Model\CustomfieldValue $cvmodel */
+		$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
+		if(class_exists($processing_class)){
 			$cvmodel = new $processing_class();
-			if(strpos($field,$prefix)===0){
-				$cvmodel->load(array('key'=>$field,'item'=>$item->id),true);
-				$item->$field = $cvmodel->value;
-			}
-		},array_keys($this->_field_defenitions));
+			$prefix = 'cust.'.$item->_context;
+			$values = $cvmodel->getList(false,false,array('context'=>$this->_context,'item'=>$item->id));
+			$keys = array_keys($this->_field_defenitions);
+			array_walk($values, function(&$data,$key) use(&$item,$prefix,$keys){
+				$field = $prefix.'.'.$key;
+				if(in_array($field,$keys)){
+					$item->$field = $data->value;
+				}
+			});
+		}
 		return $return;
 	}
 
@@ -618,8 +621,8 @@ abstract class Model extends \JTable
 		 * Initialise the query
 		 */
 		$query  = $db->getQuery(true)
-			->select('*')
-			->from($this->_table);
+			->select($db->qn('a').'.*')
+			->from($db->qn($this->_table,'a'));
 		$fields = array_keys($this->getProperties());
 
 		foreach ($conditioner as $field => $value)
@@ -634,11 +637,11 @@ abstract class Model extends \JTable
 
 			if (is_int($value))
 			{
-				$query->where($this->_db->quoteName($field) . ' = ' . $this->_db->quote($value));
+				$query->where($this->_db->quoteName('a.'.$field) . ' = ' . $this->_db->quote($value));
 			}
 			else if (is_string($value))
 			{
-				$query->where($this->_db->quoteName($field) . ' LIKE ' . $this->_db->quote($value));
+				$query->where($this->_db->quoteName('a.'.$field) . ' LIKE ' . $this->_db->quote($value));
 			}
 			else if (is_array($value))
 			{
@@ -646,7 +649,7 @@ abstract class Model extends \JTable
 				{
 					$v = $this->_db->q($v);
 				}
-				$query->where($this->_db->quoteName($field) . ' IN (' . implode(',', $value) . ')');
+				$query->where($this->_db->quoteName('a.'.$field) . ' IN (' . implode(',', $value) . ')');
 			}
 		}
 
@@ -658,7 +661,7 @@ abstract class Model extends \JTable
 			$listDir = 'ASC';
 		}
 
-		$query->order($db->qn($listOrd) . ' ' . $listDir);
+		$query->order($db->qn('a.'.$listOrd) . ' ' . $listDir);
 
 		return $query;
 	}
