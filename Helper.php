@@ -226,8 +226,11 @@ class Helper
 			}
 			$arguments[] = $value;
 		}
-
-		return call_user_func_array(array($class, $method), $arguments);
+		if(self::methodExists($class,$method)){
+			return call_user_func_array(array($class, $method), $arguments);
+		}else{
+			throw new \Exception("Method <b>$method</b> doesn't exist");
+		}
 	}
 
 	/**
