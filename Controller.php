@@ -189,6 +189,9 @@ class Controller
 				break;
 		}
 		die('exit'); // we never must go this far...
+		/**
+		 * but we get here on delete at least... need to redirect model case?
+		 */
 	}
 
 	/**
