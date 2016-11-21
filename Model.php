@@ -621,8 +621,8 @@ abstract class Model extends \JTable
 		 * Initialise the query
 		 */
 		$query  = $db->getQuery(true)
-			->select('*')
-			->from($this->_table);
+			->select($db->qn('a').'.*')
+			->from($db->qn($this->_table,'a'));
 		$fields = array_keys($this->getProperties());
 
 		foreach ($conditioner as $field => $value)
@@ -637,11 +637,11 @@ abstract class Model extends \JTable
 
 			if (is_int($value))
 			{
-				$query->where($this->_db->quoteName($field) . ' = ' . $this->_db->quote($value));
+				$query->where($this->_db->quoteName('a.'.$field) . ' = ' . $this->_db->quote($value));
 			}
 			else if (is_string($value))
 			{
-				$query->where($this->_db->quoteName($field) . ' LIKE ' . $this->_db->quote($value));
+				$query->where($this->_db->quoteName('a.'.$field) . ' LIKE ' . $this->_db->quote($value));
 			}
 			else if (is_array($value))
 			{
@@ -649,7 +649,7 @@ abstract class Model extends \JTable
 				{
 					$v = $this->_db->q($v);
 				}
-				$query->where($this->_db->quoteName($field) . ' IN (' . implode(',', $value) . ')');
+				$query->where($this->_db->quoteName('a.'.$field) . ' IN (' . implode(',', $value) . ')');
 			}
 		}
 
@@ -661,7 +661,7 @@ abstract class Model extends \JTable
 			$listDir = 'ASC';
 		}
 
-		$query->order($db->qn($listOrd) . ' ' . $listDir);
+		$query->order($db->qn('a.'.$listOrd) . ' ' . $listDir);
 
 		return $query;
 	}
