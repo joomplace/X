@@ -24,17 +24,33 @@ abstract class Sidebar
 
 	public static function setControllersEntries($view = 'Dashboard', $layout = 'default'){
 		jimport('joomla.filesystem.folder');
-		if(!static::$option){
+		if(!self::$option){
 			$scope = Loader::getClassScope(Helper::getClassName(new static(),false));
-			static::$option = 'com_'.lcfirst($scope);
+			self::$option = 'com_'.lcfirst($scope);
 		}
 		$nsp = Helper::getClassParentNameSpacing(new static());
 		list($path) = Loader::extractPaths($nsp . '\\Controller\\', '/');
 		$controllers = \JFolder::files($path);
 		foreach ($controllers as $controller){
 			$controller = str_replace('.php','',$controller);
-			if(!in_array($controller,static::$ignore_controllers)){
-				static::addEntry($controller,$view==$controller);
+			if(!in_array($controller,self::$ignore_controllers)){
+				self::addEntry($controller,$view==$controller);
+			}
+			$ctrlClass = $nsp.'\\Controller\\'.$controller;
+			$ctrl = new $ctrlClass();
+			/** @var Model $model */
+			$model = $ctrl->getModel();
+			if($model){
+				/*
+				 * TODO: May be Admin/Site part would need to be removed (depending on custom fields arch)
+				 */
+				$customfieldsClass = '\\Joomplace\\Customfields\\'.(\JFactory::getApplication()->isAdmin()?'Admin':'Site').'\\Model\\CustomField';
+				if (class_exists($customfieldsClass))
+				{
+					$data = array('option'=>'com_customfields','context'=>$model->getContext(),'extension'=>self::$option);
+					\JFactory::getLanguage()->addString(strtoupper(implode('_',$data)),ucfirst($controller).' customfields');
+					self::addCustomEntry($data);
+				}
 			}
 		}
 		return true;
@@ -42,8 +58,21 @@ abstract class Sidebar
 
 	protected static function addEntry($controller, $active = false){
 		\JHtmlSidebar::addEntry(
-			\JText::_(strtoupper(static::$option.'_'.$controller)),
-			\JRoute::_('index.php?option='.static::$option.'&controller='.$controller),
+			\JText::_(strtoupper(self::$option.'_'.$controller)),
+			\JRoute::_('index.php?option='.self::$option.'&controller='.$controller),
+			$active
+		);
+	}
+
+	protected static function addCustomEntry($array = array(), $active = false){
+		$path = array();
+		$array['extension'] = self::$option;
+		foreach ($array as $key => $val){
+			$path[] = "$key=$val";
+		}
+		\JHtmlSidebar::addEntry(
+			\JText::_(strtoupper(implode("_",$array))),
+			\JRoute::_('index.php?'.implode("&",$path)),
 			$active
 		);
 	}
