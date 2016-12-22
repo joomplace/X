@@ -94,7 +94,7 @@ class DynamicList extends \JFormFieldList
 
 			$tmp = array(
 				'value'    => $value,
-				'text'     => \JText::alt($text, $fieldname),
+				'text'     => \Joomplace\Library\JooYii\Helpers\JYText::alt($text, $fieldname),
 				'disable'  => $disabled,
 				'class'    => (string) $option['class'],
 				'selected' => ($checked || $selected),

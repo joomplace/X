@@ -19,6 +19,6 @@ $class = $displayData['class'];
 ?>
 <a href="#" class="btn btn-<?php echo $class ?>"
    onclick="return listItemTask('cb<?php echo $id ?>','<?php echo $task ?>')"
-   title="<?php echo JText::_('LIST_CONTROL_BTN_TITLE_' . strtoupper($value)); ?>">
-	<?php echo JText::_('LIST_CONTROL_BTN_' . strtoupper($value)) ?>
+   title="<?php echo \Joomplace\Library\JooYii\Helpers\JYText::_('LIST_CONTROL_BTN_TITLE_' . strtoupper($value)); ?>">
+	<?php echo \Joomplace\Library\JooYii\Helpers\JYText::_('LIST_CONTROL_BTN_' . strtoupper($value)) ?>
 </a>
