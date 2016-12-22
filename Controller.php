@@ -7,6 +7,7 @@
  */
 
 namespace Joomplace\Library\JooYii;
+use Joomplace\Library\JooYii\Helpers\JYText;
 
 /**
  * Controller class for implementing C letter of new Joomla!CMS MVC
@@ -188,9 +189,10 @@ class Controller
 				}
 				break;
 		}
+		\JFactory::getApplication()->redirect('index.php?'.\JUri::getInstance()->getQuery(),200);
 		die('exit'); // we never must go this far...
 		/**
-		 * but we get here on delete at least... need to redirect model case?
+		 * but we get here on delete and publish at least... need to redirect model case?
 		 */
 	}
 
@@ -218,11 +220,11 @@ class Controller
 		if ($cid)
 		{
 			$model->load($cid[0]);
-			\JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()) . '_EDIT_TITLE'), 'pencil');
+			\JToolbarHelper::title(JYText::_(strtoupper($this->getClassName()) . '_EDIT_TITLE'), 'pencil');
 		}
 		else
 		{
-			\JToolbarHelper::title(\JText::_(strtoupper($this->getClassName()) . '_NEW_TITLE'), 'pencil-2');
+			\JToolbarHelper::title(JYText::_(strtoupper($this->getClassName()) . '_NEW_TITLE'), 'pencil-2');
 		}
 
 		$vars = array(
@@ -238,7 +240,7 @@ class Controller
 			\JToolbarHelper::save2copy('save2copy');
 		}
 		\JToolbarHelper::save2new('save2new');
-		\JToolbarHelper::cancel('cancel');
+		$this->generateCancelBtn();
 
 		echo $this->render($this->getClassName().'.edit', $vars);
 	}
@@ -281,8 +283,6 @@ class Controller
 		{
 			$view = $this->getClassName();
 		}
-//		$viewClass = $this->getClassParentNameSpacing().'\\View\\'.$view;
-//		$view = new $viewClass();
 		$view = new View($view);
 
 		return $view;
@@ -312,25 +312,10 @@ class Controller
 	 */
 	public function apply(array $jform, $tonew = false, $return_url = '')
 	{
-		$model = $this->getModel();
-		$form = $model->getForm();
-//		$jform = $form->filter($jform);
-		/** @var \Joomla\Registry\Registry $data */
-		$form->bind($jform);
-		/* recursive jform */
-		$rjform = $form->getData()->toArray();
-		$return = $form->validate($rjform);
-		if (!$return)
-		{
-			array_map(function($e){
-				\JFactory::getApplication()->enqueueMessage($e->getMessage(),'error');
-			},$form->getErrors());
+		if(!$this->saveRecord($jform)){
 			$tonew = false;
-		}else{
-			if(!$model->save($jform)){
-				$tonew = false;
-			}
 		}
+		$model = $this->getModel();
 		if (!$tonew)
 		{
 			$key = $model->getKeyName();
@@ -379,9 +364,39 @@ class Controller
 	 */
 	public function save(array $jform, $return_url = '')
 	{
+		if($this->saveRecord($jform)){
+			$this->cancel($return_url);
+		}else{
+			$model = $this->getModel();
+			$key = $model->getKeyName();
+			$this->edit(array($model->$key), $return_url);
+		}
+	}
+
+	public function saveRecord(array $jform){
 		$model = $this->getModel();
-		$model->save($jform);
-		$this->cancel($return_url);
+		$form = $model->getForm();
+//		$jform = $form->filter($jform);
+		/** @var \Joomla\Registry\Registry $data */
+		$form->bind($jform);
+		/* recursive jform */
+		$rjform = $form->getData()->toArray();
+		$return = $form->validate($rjform);
+		if (!$return)
+		{
+			\JFactory::getApplication()->setUserState($model->getContext(),$rjform);
+			array_map(function($e){
+				\JFactory::getApplication()->enqueueMessage($e->getMessage(),'error');
+			},$form->getErrors());
+			return false;
+		}else{
+			if(!$model->save($jform)){
+				return false;
+			}else{
+				\JFactory::getApplication()->setUserState($model->getContext(),null);
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -400,7 +415,7 @@ class Controller
 		$vars  = array();
 		if ($model)
 		{
-			\JToolbarHelper::addNew('add');
+			$this->generateNewBtn();
 			$state = $model->getState();
 			if ($limit !== false)
 			{
@@ -420,8 +435,16 @@ class Controller
 		echo $this->render(($view ? $view : $this->getClassName()), $vars);
 	}
 
+	public function generateNewBtn($appendix = ''){
+		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Helper::getClassName($this)).'&controller='.$this->getClassName().'&task=add'.$appendix,JYText::_('JYCREATE'),'new');
+	}
+
+	public function generateCancelBtn($appendix = ''){
+		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Helper::getClassName($this)).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
+	}
+
 	/**
-	 *  Alias fot index
+	 *  Alias for index
 	 *
 	 * @since 1.0
 	 */
@@ -468,6 +491,20 @@ class Controller
 	protected function preRender($viewname, $layout, &$vars){
 		if(class_exists(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar')){
 			call_user_func_array(array(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar','setControllersEntries'),array($viewname,$layout));
+		}
+		if(!isset($vars['option'])){
+			$vars['option'] = 'com_'.lcfirst(Helper::getClassName($this));
+		}
+		if(!isset($vars['form_action'])){
+			$vars['form_action'] = 'index.php?'.\JUri::getInstance()->getQuery();
+		}
+		if(!isset($vars['form_params'])){
+			$fparams = array();
+			array_map(function ($kpair) use (&$fparams){
+				list($k,$p) = explode('=',$kpair);
+				$fparams[$k] = $p;
+			},explode('&',\JUri::getInstance()->getQuery()));
+			$vars['form_params'] = $fparams;
 		}
 	}
 
