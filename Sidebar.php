@@ -48,8 +48,8 @@ abstract class Sidebar
 				if (class_exists($customfieldsClass))
 				{
 					$data = array('option'=>'com_customfields','context'=>$model->getContext(),'extension'=>self::$option);
-					\JFactory::getLanguage()->addString(strtoupper(implode('_',$data)),ucfirst($controller).' customfields');
-					self::addCustomEntry($data);
+					\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper(implode('_',$data)),ucfirst($controller).' customfields');
+					self::addCustomEntry($data, ($view=='Customfields' && $layout == $model->getContext()));
 				}
 			}
 		}
@@ -57,8 +57,9 @@ abstract class Sidebar
 	}
 
 	protected static function addEntry($controller, $active = false){
+		\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper(self::$option.'_'.$controller),ucfirst($controller));
 		\JHtmlSidebar::addEntry(
-			\JText::_(strtoupper(self::$option.'_'.$controller)),
+			\Joomplace\Library\JooYii\Helpers\JYText::_(strtoupper(self::$option.'_'.$controller)),
 			\JRoute::_('index.php?option='.self::$option.'&controller='.$controller),
 			$active
 		);
@@ -71,7 +72,7 @@ abstract class Sidebar
 			$path[] = "$key=$val";
 		}
 		\JHtmlSidebar::addEntry(
-			\JText::_(strtoupper(implode("_",$array))),
+			\Joomplace\Library\JooYii\Helpers\JYText::_(strtoupper(implode("_",$array))),
 			\JRoute::_('index.php?'.implode("&",$path)),
 			$active
 		);
