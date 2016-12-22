@@ -115,7 +115,10 @@ abstract class Component extends \JControllerBase
 
 			$controllerClass = $this->getController($this->_namespace . '\\Controller\\' . $controller);
 
-			\Joomplace\Library\JooYii\Helper::callBindedFunction($controllerClass, $action, array($json_registry, $input, $cconfig, $gconfig));
+			if(Helper::methodExists($controllerClass, 'preInitialize')){
+				Helper::callBindedFunction($controllerClass, 'preInitialize', array($json_registry, $input, $cconfig, $gconfig));
+			}
+			Helper::callBindedFunction($controllerClass, $action, array($json_registry, $input, $cconfig, $gconfig));
 
 		}
 		catch (\Exception $e)
