@@ -425,10 +425,20 @@ abstract class Model extends \JTable
 		$key        = $this->_primary_key;
 		$name       = str_replace('#__', $this->_db->getPrefix(), $this->_table) . ($this->$key ? ('.' . $this->$key) : '');
 		$xml        = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><form></form>');
-		$fieldset   = $xml->addChild('fieldset');
-		$set_values = ($this->$key) ? 1 : 0;
+		$fieldsets = array();
+		$fieldsets['basic'] = $xml->addChild('fieldset');
+		$fieldsets['basic']->addAttribute('name','basic');
+		$fieldsets['basic']->addAttribute('label',strtoupper('basic_fieldset'));
 		foreach ($this->_field_defenitions as $key => $defenition)
 		{
+			if(!isset($defenition['fieldset'])){
+				$defenition['fieldset'] = 'basic';
+			}
+			if(!isset($fieldsets[$defenition['fieldset']])){
+				$fieldsets[$defenition['fieldset']] = $xml->addChild('fieldset');
+				$fieldsets[$defenition['fieldset']]->addAttribute('name',$defenition['fieldset']);
+				$fieldsets[$defenition['fieldset']]->addAttribute('label',strtoupper($defenition['fieldset'].'_fieldset'));
+			}
 			if (!isset($defenition['label']))
 			{
 				$defenition['label'] = 'FORMFIELD_' . strtoupper($key) . '_LABEL';
@@ -444,7 +454,7 @@ abstract class Model extends \JTable
 			$defenition['fieldname']   = $key;
 			$defenition['name'] = $key;
 			$defenition['id']   = $key;
-			$field              = $fieldset->addChild('field');
+			$field              = $fieldsets[$defenition['fieldset']]->addChild('field');
 			foreach ($defenition as $attr => $attr_value)
 			{
 				if(!in_array($attr, $this->_ignore_in_xml)){
