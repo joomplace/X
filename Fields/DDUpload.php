@@ -13,6 +13,7 @@ use Joomplace\Library\JooYii\Helper;
 use Joomplace\Library\JooYii\Loader;
 
 jimport('joomla.form.helper');
+jimport( 'joomla.filesystem.file' );
 \JFormHelper::loadFieldClass('list');
 /**
  * Dynamic list field type
@@ -55,9 +56,24 @@ class DDUpload extends \JFormField
 
 	public static function process(){
 		if(\JSession::checkToken('get')){
+			$config = \JFactory::getConfig();
+            $lifetime = $config->get('lifetime');
+
+            $tmp_path = JPATH_ROOT . '/tmp/'.\JFactory::getApplication()->input->get('path',null,'PATH');
+            $photos = scandir($tmp_path);
+
+            foreach ($photos as $photo) {
+                $photo_path = $tmp_path."/".$photo;
+                $status = stat($photo_path);
+                if ($status['ctime'] + $lifetime*60 < time()) {
+                    \JFILE::delete($photo_path);
+                }
+            }
+
 			list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
 			$params = array();
 			$file = \JFactory::getApplication()->input->files->get('file',array(),'ARRAY');
+            $file['name'] = substr_replace($file['name'], mktime(), strrpos($file['name'], '.')).substr($file['name'], strrpos($file['name'], '.'));
 			$params['file_name'] = $file['name'];
 			if($file && $file = Helper::uploadFile($file, 'tmp/'.\JFactory::getApplication()->input->get('path',null,'PATH'))){
 				$params['file'] = $file;
@@ -71,7 +87,7 @@ class DDUpload extends \JFormField
 		\JFactory::getApplication()->close(403);
 	}
 
-	public static function onBeforeStore(&$model, $name, $defenition){
+	public static function onBeforeStore(&$model, $name = '', $defenition = array()){
 		$path = $defenition['path'];
 		$model->$name = explode('|',$model->$name);
 		$model->$name = array_map(function($item) use ($path){
@@ -86,20 +102,41 @@ class DDUpload extends \JFormField
 			return $item;
 		},$model->$name);
 		$model->$name = json_encode($model->$name);
-		echo "<pre>";
-		print_r($model);
-		echo "</pre>";
-		die('');
 		/*
 		 * Move files from tmp to normal directory
 		 */
+        $oldModel = clone $model;
+        $oldModel->load($model->id);
+
+        foreach (json_decode($oldModel->$name) as $file) {
+            if (file_exists(JPATH_ROOT.$file)) {
+                \JFile::delete(JPATH_ROOT.$file);
+            }
+        }
+
 		return true;
 	}
 
-	public static function onAfterStore(&$model, $name, $defenition){
+	public static function onAfterStore(&$model, $name = '', $defenition = array()){
 		/*
 		 * Delete unseted files
 		 */
 		return true;
 	}
+
+    public static function onBeforeDelete(&$model, $name = '', $defenition = array()){
+        foreach (json_decode($model->$name) as $path) {
+            \JFile::delete(JPATH_ROOT.$path);
+        }
+
+        return true;
+    }
+
+    public static function onAfterDelete (&$model, $name = '', $defenition = array()){
+        /*
+         * onAfterDelete
+         */
+        return true;
+    }
+
 }

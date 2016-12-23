@@ -107,6 +107,7 @@ class View implements \JView
 		if(\JFactory::getApplication()->isSite() && !$sublayout){
 			$path    = Loader::findViewLayoutByNS($this->_view_name, 'toolbar', $this->getNamespace());
 			if($path){
+				ob_start();
 				include $path;
 				$toolbar_html = ob_get_contents();
 				ob_end_clean();

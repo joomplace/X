@@ -354,7 +354,7 @@ class Helper
 		$fileName = preg_replace("/[^A-Za-z0-9\\.]/i", "-", $fileName);
 
 		$uploadPath = JPATH_SITE . '/'.$path;
-		$uploadPath = '/'.trim($uploadPath,'/\\').'/'.$fileName;
+		$uploadPath = trim($uploadPath,'/\\').'/'.$fileName;
 
 		if(is_file($uploadPath)){
 			echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'File '.$fileName.' already exists' );
