@@ -383,4 +383,9 @@ class Helper
 				is_array(json_decode($string))))) ? true : false;
 	}
 
+	public static function render($layout, $data){
+		list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
+		return \JLayoutHelper::render('form.ddupload', $data, $def_path);
+	}
+
 }

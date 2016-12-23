@@ -41,7 +41,6 @@ class DDUpload extends \JFormField
 	public function getInput(){
 		$option = \JFactory::getApplication()->input->get('option');
 		$this->getFiles();
-		list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
 		$params = array();
 		foreach ($this as $k => $item){
 			if(!is_array($item)){
@@ -49,7 +48,7 @@ class DDUpload extends \JFormField
 			}
 		}
 		$params['ajax_url'] = 'index.php?option='.$option.'&path='.$this->getAttribute('path','').'&task=proxy.field&field_type='.$this->type.'&'. \JSession::getFormToken() .'=1';
-		$html = \JLayoutHelper::render('form.ddupload', $params, $def_path);
+		$html = Helper::render('form.ddupload',$params);
 		return $html;
 	}
 
