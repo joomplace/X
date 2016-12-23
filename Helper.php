@@ -9,7 +9,7 @@
 namespace Joomplace\Library\JooYii;
 
 use ReflectionMethod;
-use JText;
+use \Joomplace\Library\JooYii\Helpers\JYText;
 use JFile;
 
 /**
@@ -27,6 +27,8 @@ class Helper
 	 * @since 1.0
 	 */
 	protected static $_classreflections = array();
+
+	protected static $_lang_strings = null;
 
 	/**
 	 * Extracts class name of passed object
@@ -296,19 +298,19 @@ class Helper
 			switch ($fileError)
 			{
 				case 1:
-					echo JText::_( 'FILE TO LARGE THAN PHP INI ALLOWS' );
+					echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'FILE TO LARGE THAN PHP INI ALLOWS' );
 					return;
 
 				case 2:
-					echo JText::_( 'FILE TO LARGE THAN HTML FORM ALLOWS' );
+					echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'FILE TO LARGE THAN HTML FORM ALLOWS' );
 					return;
 
 				case 3:
-					echo JText::_( 'ERROR PARTIAL UPLOAD' );
+					echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'ERROR PARTIAL UPLOAD' );
 					return;
 
 				case 4:
-					echo JText::_( 'ERROR NO FILE' );
+					echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'ERROR NO FILE' );
 					return;
 			}
 		}
@@ -316,7 +318,7 @@ class Helper
 		$fileSize = $file['size'];
 		if($fileSize > 20000000)
 		{
-			echo JText::_( 'FILE BIGGER THAN 20MB' );
+			echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'FILE BIGGER THAN 20MB' );
 		}
 
 		$fileName = $file['name'];
@@ -337,7 +339,7 @@ class Helper
 
 		if ($extOk == false)
 		{
-			echo JText::_( 'INVALID EXTENSION' );
+			echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'INVALID EXTENSION' );
 			return;
 		}
 
@@ -355,12 +357,12 @@ class Helper
 		$uploadPath = '/'.trim($uploadPath,'/\\').'/'.$fileName;
 
 		if(is_file($uploadPath)){
-			echo JText::_( 'File '.$fileName.' already exists' );
+			echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'File '.$fileName.' already exists' );
 			return false;
 		}
 		if(!JFile::upload($fileTemp, $uploadPath))
 		{
-			echo JText::_( 'ERROR MOVING FILE' );
+			echo \Joomplace\Library\JooYii\Helpers\JYText::_( 'ERROR MOVING FILE' );
 			return false;
 		}
 		else
@@ -380,4 +382,5 @@ class Helper
 			(is_object(json_decode($string)) ||
 				is_array(json_decode($string))))) ? true : false;
 	}
+
 }

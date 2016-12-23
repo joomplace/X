@@ -9,12 +9,7 @@
 
 defined('JPATH_PLATFORM') or die;
 extract($displayData);
-if($value){
-	echo "<ul>";
-	foreach ($value as $v){
-		echo "<li>$v</li>";
-	}
-	echo "</ul>";
-}else{
-	echo \Joomplace\Library\JooYii\Helpers\JYText::_('NO_VALUE');
-}
+JHtml::_('jquery.framework');
+echo "<pre>";
+print_r($displayData);
+echo "</pre>";

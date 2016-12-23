@@ -51,6 +51,19 @@ abstract class Model extends \JTable
 	/** @var string $_table */
 	protected $_table;
 	protected $_context;
+	protected $_ignore_in_xml = array(
+		'hide_at',
+	);
+
+	/**
+	 * @return string
+	 *
+	 * @since 1.1
+	 */
+	public function getContext()
+	{
+		return $this->_context;
+	}
 	protected $_total = 0;
 	protected $_offset = 0;
 	protected $_limit = 0;
@@ -160,6 +173,12 @@ abstract class Model extends \JTable
 		$this->checkIntegrety();
 		parent::__construct($this->_table, $this->_primary_key, $db);
 		$this->mixInCustomFields();
+
+		foreach ($this->_field_defenitions as $name => $defenition){
+			\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper('TABLE_LIST_HEAD_'.$name),$defenition['label']);
+			\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper($name),$defenition['label']);
+		}
+
 		if (!$this->onAfterInit())
 		{
 			/*
@@ -418,14 +437,8 @@ abstract class Model extends \JTable
 			{
 				$defenition['description'] = 'FORMFIELD_' . strtoupper($key) . '_DESC';
 			}
-			if ($set_values || $this->$key)
-			{
-				$defenition['default'] = $this->$key;
-				$defenition['value'] = $this->$key;
-			}else{
-				$defenition['default'] = $defenition['value'] = \JFactory::getApplication()->input->get($key,$defenition['default']);
-			}
-			if(in_array('form',$defenition['hide_at'])){
+
+			if($defenition['hide_at'] && in_array('form',$defenition['hide_at'])){
 				$defenition['type'] = 'hidden';
 			}
 			$defenition['fieldname']   = $key;
@@ -434,21 +447,26 @@ abstract class Model extends \JTable
 			$field              = $fieldset->addChild('field');
 			foreach ($defenition as $attr => $attr_value)
 			{
-				if (in_array($attr, array('option')))
-				{
-					foreach ($attr_value as $kopt => $opt)
+				if(!in_array($attr, $this->_ignore_in_xml)){
+					if (in_array($attr, array('option')))
 					{
-						$option = $field->addChild('option', $opt)->addAttribute('value', $kopt);
+						foreach ($attr_value as $kopt => $opt)
+						{
+							$option = $field->addChild('option', $opt)->addAttribute('value', $kopt);
+						}
 					}
-				}
-				else
-				{
-					$field->addAttribute($attr, $attr_value);
+					else
+					{
+						$field->addAttribute($attr, $attr_value);
+					}
 				}
 			}
 		}
 		$form = Form::getInstance($name, $xml->asXML(), array('control'=>'jform'), true, false);
 		$form->bind($this->reveal());
+		if(\JFactory::getApplication()->getUserState($this->getContext())){
+			$form->bind(\JFactory::getApplication()->getUserState($this->getContext()));
+		}
 		/*
 		 * Register additional field types paths
 		 */
@@ -854,7 +872,7 @@ abstract class Model extends \JTable
 		}
 		else
 		{
-			echo \JText::_('ANONYMOUS');
+			echo \Joomplace\Library\JooYii\Helpers\JYText::_('ANONYMOUS');
 		}
 	}
 
@@ -968,6 +986,22 @@ abstract class Model extends \JTable
 		echo $layout->render(array('value' => $value, 'task' => $task, 'class' => $class, 'id' => $this->$key));
 	}
 
+	public function renderEditLink($value, $params, $class = '')
+	{
+		$paths  = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
+		$layout = new \JLayoutFile('action-link');
+		$layout->addIncludePaths($paths);
+		$key = $this->_primary_key;
+		$params['task'] = 'edit';
+		$params['cid[]'] = $this->$key;
+		$link = array();
+		foreach ($params as $k => $v){
+			$link[] = $k.'='.$v;
+		}
+		$link = 'index.php?'.implode('&',$link);
+		echo $layout->render(array('value' => $value, 'link' => $link, 'class' => $class));
+	}
+
 	/**
 	 * Reroute for publish action
 	 *
@@ -1001,7 +1035,7 @@ abstract class Model extends \JTable
 		$counter = $this->setPublished($cid, $state = 0);
 		if ($counter)
 		{
-			\JFactory::getApplication()->enqueueMessage(\JText::sprintf('ITEMS_UNPUBLISHED', $counter));
+			\JFactory::getApplication()->enqueueMessage(\Joomplace\Library\JooYii\Helpers\JYText::sprintf('ITEMS_UNPUBLISHED', $counter));
 		}
 
 		return $counter;
@@ -1034,7 +1068,7 @@ abstract class Model extends \JTable
 		}
 		if ($state && $counter)
 		{
-			\JFactory::getApplication()->enqueueMessage(\JText::sprintf('ITEMS_PUBLISHED', $counter));
+			\JFactory::getApplication()->enqueueMessage(\Joomplace\Library\JooYii\Helpers\JYText::sprintf('ITEMS_PUBLISHED', $counter));
 		}
 
 		return $counter;
@@ -1122,7 +1156,7 @@ abstract class Model extends \JTable
 
 		if (empty($pks))
 		{
-			return \JError::raiseWarning(500, \JText::_('ERROR_NO_ITEMS_SELECTED'));
+			return \JError::raiseWarning(500, \Joomplace\Library\JooYii\Helpers\JYText::_('ERROR_NO_ITEMS_SELECTED'));
 		}
 
 		// Update ordering values
@@ -1135,7 +1169,7 @@ abstract class Model extends \JTable
 			{
 				// Prune items that you can't change.
 				unset($pks[$i]);
-				\JLog::add(\JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), \JLog::WARNING, 'jerror');
+				\JLog::add(\Joomplace\Library\JooYii\Helpers\JYText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), \JLog::WARNING, 'jerror');
 			}
 			elseif ($this->ordering != $order[$i])
 			{
@@ -1216,7 +1250,7 @@ abstract class Model extends \JTable
 		}
 		if ($counter)
 		{
-			\JFactory::getApplication()->enqueueMessage(\JText::sprintf('ITEMS_DELETED', $counter));
+			\JFactory::getApplication()->enqueueMessage(\Joomplace\Library\JooYii\Helpers\JYText::sprintf('ITEMS_DELETED', $counter));
 
 			return $counter;
 		}

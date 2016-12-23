@@ -10,15 +10,13 @@
 defined('JPATH_PLATFORM') or die;
 
 $value = $displayData['value'];
-$task  = $displayData['task'];
-$id    = $displayData['id'];
+$link  = $displayData['link'];
 $class = $displayData['class'];
 
 \JHtml::_('behavior.framework');
 \JHtmlGrid::behavior();
 ?>
-<a href="#" class="btn btn-<?php echo $class ?>"
-   onclick="return listItemTask('cb<?php echo $id ?>','<?php echo $task ?>')"
+<a href="<?php echo $link; ?>" class="btn btn-<?php echo $class ?>"
    title="<?php echo \Joomplace\Library\JooYii\Helpers\JYText::_('LIST_CONTROL_BTN_TITLE_' . strtoupper($value)); ?>">
 	<?php echo \Joomplace\Library\JooYii\Helpers\JYText::_('LIST_CONTROL_BTN_' . strtoupper($value)) ?>
 </a>
