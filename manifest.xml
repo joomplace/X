@@ -22,7 +22,6 @@
         <folder>Fields</folder>
         <folder>Helpers</folder>
         <folder>Layouts</folder>
-        <folder>stylesheets</folder>
     </files>
     <updateservers>
         <server type="extension" priority="1" name="JooYii Update Site">https://updates.joomplace.com/jooyii.xml</server>

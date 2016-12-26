@@ -87,8 +87,8 @@ class DDUpload extends \JFormField
 		\JFactory::getApplication()->close(403);
 	}
 
-	public static function onBeforeStore(&$model, $name = '', $defenition = array()){
-		$path = $defenition['path'];
+	public static function onBeforeStore(&$model, $name, $definition){
+		$path = $definition['path'];
 		$model->$name = explode('|',$model->$name);
 		$model->$name = array_map(function($item) use ($path){
 			if(strpos($item,'tmp/')==1){
@@ -117,14 +117,14 @@ class DDUpload extends \JFormField
 		return true;
 	}
 
-	public static function onAfterStore(&$model, $name = '', $defenition = array()){
+	public static function onAfterStore(&$model, $name, $definition){
 		/*
 		 * Delete unseted files
 		 */
 		return true;
 	}
 
-    public static function onBeforeDelete(&$model, $name = '', $defenition = array()){
+    public static function onBeforeDelete(&$model, $name, $definition){
         foreach (json_decode($model->$name) as $path) {
             \JFile::delete(JPATH_ROOT.$path);
         }
@@ -132,7 +132,7 @@ class DDUpload extends \JFormField
         return true;
     }
 
-    public static function onAfterDelete (&$model, $name = '', $defenition = array()){
+    public static function onAfterDelete (&$model, $name, $ddefinition){
         /*
          * onAfterDelete
          */
