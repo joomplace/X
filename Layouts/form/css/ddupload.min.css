@@ -14,6 +14,7 @@
 }
 .ddupload_field .file_outter{
     display: inline-block;
+    position: relative;
 }
 .ddupload_field .uploader
 {
@@ -98,4 +99,10 @@
     right: -15px;
     background: url("/administrator/components/com_testimonials/assets/images/btn_close.png");
     cursor: pointer;
+}
+.file_close {
+    position: absolute;
+    font-weight: bold;
+    font-size: 28px;
+    right: 15px;
 }

@@ -89,7 +89,7 @@ class DDUpload extends \JFormField
 
 	public static function onBeforeStore(&$model, $name, $definition){
 		$path = $definition['path'];
-		$model->$name = explode('|',$model->$name);
+		$model->$name = array_values(array_diff(explode('|',$model->$name), array('')));
 		$model->$name = array_map(function($item) use ($path){
 			if(strpos($item,'tmp/')==1){
 				$currentPath = JPATH_SITE.$item;
