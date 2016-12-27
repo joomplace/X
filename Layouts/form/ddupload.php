@@ -22,7 +22,7 @@ if($jspath){
 }else{
 	JFactory::getDocument()->addScript(JUri::root(true).'/libraries/JooYii/Layouts/form/js/ddupload.min.js');
 }
-$values = json_decode($value)
+$values = json_decode($value);
 ?>
 <div data-upurl="<?= $ajax_url ?>" class="ddupload_field">
 	<!-- D&D Zone-->
@@ -35,8 +35,8 @@ $values = json_decode($value)
 		<div class="browser">
 			<label>
 				<span>Click to open the file Browser</span>
-				<input type="file" name="files_<?= $fieldname ?>[]" multiple="<?= $multiple ?>" title="<?= $description ?>">
-				<input type="hidden" required="<?= $required ?>" name="<?= $name ?>" multiple="<?= $multiple ?>" value="<?=  empty($values)?'':(implode('|', $values)); ?>" class="thumbsData">
+				<input type="file" name="files_<?= $fieldname ?>[]" <?= $multiple?'multiple="true"':'' ?> title="<?= $description ?>">
+				<input type="hidden" required="<?= $required ?>" name="<?= $name ?>" <?= $multiple?'multiple="true"':'' ?> value="<?=  empty($values)?'':(implode('|', $values)); ?>" class="thumbsData">
 			</label>
 		</div>
 	</div>
