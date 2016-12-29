@@ -175,8 +175,12 @@ abstract class Model extends \JTable
 		$this->mixInCustomFields();
 
 		foreach ($this->_field_defenitions as $name => $defenition){
-			\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper('TABLE_LIST_HEAD_'.$name),$defenition['label']);
-			\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper($name),$defenition['label']);
+            if(isset($defenition['label']))
+            {
+                \Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper('TABLE_LIST_HEAD_'.$name),$defenition['label']);
+                \Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper($name),$defenition['label']);
+            }
+
 		}
 
 		if (!$this->onAfterInit())
@@ -235,7 +239,7 @@ abstract class Model extends \JTable
 	 */
 	protected function checkIntegrety($force = false)
 	{
-		if (!self::$_integrety_checked[$this->_table] || $force)
+		if (isset(self::$_integrety_checked[$this->_table]) && (!self::$_integrety_checked[$this->_table] || $force))
 		{
 			$tables = $this->_db->getTableList();
 			if (!in_array(str_replace('#__', $this->_db->getPrefix(), $this->_table), $tables))
@@ -448,7 +452,7 @@ abstract class Model extends \JTable
 				$defenition['description'] = 'FORMFIELD_' . strtoupper($key) . '_DESC';
 			}
 
-			if($defenition['hide_at'] && in_array('form',$defenition['hide_at'])){
+			if(isset($defenition['hide_at']) && $defenition['hide_at'] && in_array('form',$defenition['hide_at'])){
 				$defenition['type'] = 'hidden';
 			}
 			$defenition['fieldname']   = $key;
