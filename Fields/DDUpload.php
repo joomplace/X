@@ -39,6 +39,11 @@ class DDUpload extends \JFormField
 
 	}
 
+	protected function getName($fieldName)
+    {
+        return str_replace('[]','',parent::getName($fieldName));
+    }
+
 	public function getInput(){
 		$option = \JFactory::getApplication()->input->get('option');
 		$this->getFiles();
@@ -73,7 +78,7 @@ class DDUpload extends \JFormField
 			list($def_path) = Loader::getPathByPsr4('Joomplace\\Library\\JooYii\\Layouts\\', '/');
 			$params = array();
 			$file = \JFactory::getApplication()->input->files->get('file',array(),'ARRAY');
-            $file['name'] = substr_replace($file['name'], mktime(), strrpos($file['name'], '.')).substr($file['name'], strrpos($file['name'], '.'));
+            $file['name'] = substr_replace($file['name'], time(), strrpos($file['name'], '.')).substr($file['name'], strrpos($file['name'], '.'));
 			$params['file_name'] = $file['name'];
 			if($file && $file = Helper::uploadFile($file, 'tmp/'.\JFactory::getApplication()->input->get('path',null,'PATH'))){
 				$params['file'] = $file;

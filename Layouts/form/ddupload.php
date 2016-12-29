@@ -35,8 +35,8 @@ $values = json_decode($value);
 		<div class="browser">
 			<label>
 				<span>Click to open the file Browser</span>
-				<input type="file" name="files_<?= $fieldname ?>[]" <?= $multiple?'multiple="true"':'' ?> title="<?= $description ?>">
-				<input type="hidden" required="<?= $required ?>" name="<?= $name ?>" <?= $multiple?'multiple="true"':'' ?> value="<?=  empty($values)?'':(implode('|', $values)); ?>" class="thumbsData">
+				<input type="file" name="files_<?= $fieldname ?>[]" <?= $multiple?'data-multiple="true"':'' ?> title="<?= $description ?>">
+				<input type="hidden" required="<?= $required ?>" name="<?= $name ?>" <?= $multiple?'data-multiple="true"':'' ?> value="<?=  empty($values)?'':(implode('|', $values)); ?>" class="thumbsData">
 			</label>
 		</div>
 	</div>
