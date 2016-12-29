@@ -106,6 +106,7 @@ class DDUpload extends \JFormField
 			}
 			return $item;
 		},$model->$name);
+        $newFiles = $model->$name;
 		$model->$name = json_encode($model->$name);
 		/*
 		 * Move files from tmp to normal directory
@@ -113,9 +114,11 @@ class DDUpload extends \JFormField
         $oldModel = clone $model;
         $oldModel->load($model->id);
 
-        foreach (json_decode($oldModel->$name) as $file) {
-            if (file_exists(JPATH_ROOT.$file)) {
-                \JFile::delete(JPATH_ROOT.$file);
+        $oldFiles = json_decode($oldModel->$name);
+
+                if (file_exists(JPATH_ROOT.$file)) {
+                    \JFile::delete(JPATH_ROOT.$file);
+                }
             }
         }
 
