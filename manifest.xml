@@ -19,6 +19,7 @@
         <filename>View.php</filename>
         <folder>Fields</folder>
         <folder>Layouts</folder>
+        <folder>Helpers</folder>
     </files>
     <updateservers>
         <server type="extension" priority="1" name="JooYii Update Site">https://updates.joomplace.com/jooyii.xml</server>
