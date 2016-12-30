@@ -440,7 +440,7 @@ class Controller
 	}
 
 	public function generateCancelBtn($appendix = ''){
-		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Helper::getClassName($this)).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
+		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Loader::getClassScope(Helper::getClassName(new static(),false))).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
 	}
 
 	/**
