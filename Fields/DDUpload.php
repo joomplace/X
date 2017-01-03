@@ -115,7 +115,10 @@ class DDUpload extends \JFormField
         $oldModel->load($model->id);
 
         $oldFiles = json_decode($oldModel->$name);
+       	$trash = array_diff($oldFiles, $newFiles);
 
+        if (!empty($trash)) {
+            foreach ($trash as $file) {
                 if (file_exists(JPATH_ROOT.$file)) {
                     \JFile::delete(JPATH_ROOT.$file);
                 }
