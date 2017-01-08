@@ -436,11 +436,11 @@ class Controller
 	}
 
 	public function generateNewBtn($appendix = ''){
-		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Helper::getClassName($this)).'&controller='.$this->getClassName().'&task=add'.$appendix,JYText::_('JYCREATE'),'new');
+		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Loader::getClassScope(Helper::getClassName(new static(),false))).'&controller='.$this->getClassName().'&task=add'.$appendix,JYText::_('JYCREATE'),'new');
 	}
 
 	public function generateCancelBtn($appendix = ''){
-		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Helper::getClassName($this)).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
+		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Loader::getClassScope(Helper::getClassName(new static(),false))).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
 	}
 
 	/**
