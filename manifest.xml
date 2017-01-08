@@ -16,8 +16,11 @@
         <filename>Helper.php</filename>
         <filename>Model.php</filename>
         <filename>Router.php</filename>
+        <filename>Sidebar.php</filename>
         <filename>View.php</filename>
+        <filename>index.html</filename>
         <folder>Fields</folder>
+        <folder>Helpers</folder>
         <folder>Layouts</folder>
     </files>
     <updateservers>

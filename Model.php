@@ -1138,7 +1138,7 @@ abstract class Model extends \JTable
 
 		foreach ($this->_field_defenitions as $field => $fdata){
 			if(method_exists($fdata['type'],'onAfterStore')){
-				if(!call_user_func(array($fdata['type'],'onAfterStore'), array(&$this, $field, $fdata))){
+				if(!call_user_func_array(array($fdata['type'],'onAfterStore'), array(&$this, $field, $fdata))){
 					$return = false;
 				}
 			}
@@ -1309,5 +1309,29 @@ abstract class Model extends \JTable
 			}
 		}
 	}
+
+	public function delete($pk = null) {
+
+	    $this->load($pk);
+
+        foreach ($this->_field_defenitions as $field => $fdata){
+            if(method_exists($fdata['type'],'onBeforeDelete')){
+                if(!call_user_func_array(array($fdata['type'],'onBeforeDelete'), array(&$this, $field, $fdata))){
+                    return false;
+                }
+            }
+        }
+
+        $return = parent::delete($pk);
+
+        foreach ($this->_field_defenitions as $field => $fdata){
+            if(method_exists($fdata['type'],'onAfterDelete')){
+                if(!call_user_func_array(array($fdata['type'],'onAfterDelete'), array(&$this, $field, $fdata))){
+                    $return =  false;
+                }
+            }
+        }
+        return $return;
+    }
 
 }
