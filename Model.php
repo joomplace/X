@@ -1128,11 +1128,13 @@ abstract class Model extends \JTable
 		 */
 		$processing_class = '\\Joomplace\\Customfields\\Admin\\Model\\CustomfieldValue';
 		/** @var \Joomplace\Customfields\Admin\Model\CustomfieldValue $cvmodel */
-		$cvmodel = new $processing_class();
-		$return = (array_search(false, array_map(function($cfv) use ($item, $cvmodel){
-			$cfv['item'] = $item->id;
-			return $cvmodel->save($cfv);
-		},$cfs_data)))?false:$return;
+		if(class_exists($processing_class)){
+			$cvmodel = new $processing_class();
+			$return = (array_search(false, array_map(function($cfv) use ($item, $cvmodel){
+				$cfv['item'] = $item->id;
+				return $cvmodel->save($cfv);
+			},$cfs_data)))?false:$return;
+		}
 
 		foreach ($this->_field_defenitions as $field => $fdata){
 			if(method_exists($fdata['type'],'onAfterStore')){
