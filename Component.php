@@ -111,7 +111,7 @@ abstract class Component extends \JControllerBase
 			}
 			$task = explode('.', $task);
 			$action = $task[0];
-			$input->set('view', $input->getString('view', $controller));
+			$input->def('view', $input->getString('view', $controller));
 
 			$controllerClass = $this->getController($this->_namespace . '\\Controller\\' . $controller);
 
