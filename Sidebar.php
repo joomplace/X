@@ -2,80 +2,74 @@
 /**
  * Created by PhpStorm.
  * User: Alexandr
- * Date: 02.11.2016
- * Time: 7:57
+ * Date: 23.06.2017
+ * Time: 14:22
  */
 
-namespace Joomplace\Library\JooYii;
+namespace JoomPlaceX;
 
 
-abstract class Sidebar
+class Sidebar extends \JHtmlSidebar
 {
-	protected static $option;
-	protected static $ignore_controllers = array();
+    public static function getEntries()
+    {
+        $entries = parent::getEntries();
+        $entries = static::getCascadeEntries($entries);
+        return $entries;
+    }
 
-	/**
-	 * @param \Joomplace\Library\JooYii\View $view Current view
-	 *
-	 *
-	 * @since 1.1
-	 */
-	abstract public static function setUp($view);
+    protected static function getCascadeEntries($entries, $name_prefix = '')
+    {
+        $result = array();
+        foreach ($entries as $entry){
+            $entry[0] = $name_prefix.$entry[0];
+            $result[] = $entry;
+            if(isset($entry[3]) && $entry[3]){
+                $result = array_merge($result, static::getCascadeEntries($entry[3], $name_prefix.' - '));
+            }
+        }
+        return $result;
+    }
 
-	public static function setControllersEntries($view = 'Dashboard', $layout = 'default'){
-		jimport('joomla.filesystem.folder');
-		if(!self::$option){
-			$scope = Loader::getClassScope(Helper::getClassName(new static(),false));
-			self::$option = 'com_'.lcfirst($scope);
-		}
-		$nsp = Helper::getClassParentNameSpacing(new static());
-		list($path) = Loader::extractPaths($nsp . '\\Controller\\', '/');
-		$controllers = \JFolder::files($path);
-		foreach ($controllers as $controller){
-			$controller = str_replace('.php','',$controller);
-			if(!in_array($controller,self::$ignore_controllers)){
-				self::addEntry($controller,$view==$controller);
-			}
-			$ctrlClass = $nsp.'\\Controller\\'.$controller;
-			$ctrl = new $ctrlClass();
-			/** @var Model $model */
-			$model = $ctrl->getModel();
-			if($model){
-				/*
-				 * TODO: May be Admin/Site part would need to be removed (depending on custom fields arch)
-				 */
-				$customfieldsClass = '\\Joomplace\\Customfields\\'.(\JFactory::getApplication()->isAdmin()?'Admin':'Site').'\\Model\\CustomField';
-				if (class_exists($customfieldsClass))
-				{
-					$data = array('option'=>'com_customfields','context'=>$model->getContext(),'extension'=>self::$option);
-					\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper(implode('_',$data)),ucfirst($controller).' customfields');
-					self::addCustomEntry($data, ($view=='Customfields' && $layout == $model->getContext()));
-				}
-			}
-		}
-		return true;
-	}
+    protected static function addEntryCascade(&$parentNode, $name, $link = '', $active = false)
+    {
+        $add = true;
+        $parent = '';
+        if(strpos($name,' | ')){
+            $complex = explode(' | ',$name);
+            $parent = array_shift($complex);
+            $name = implode(' | ',$complex);
+        }
+        foreach ($parentNode[3] as &$entry){
+            if($parent && $entry[0]==$parent){
+                if(!isset($entry[3])){
+                    $entry[3] = array();
+                }
+                static::addEntryCascade($entry, $name, $link, $active);
+                $add = false;
+                break;
+            }
+        }
+        if($add){
+            foreach ($parentNode[3] as &$entry){
+                if($entry[0]==$name){
+                    $entry = array($name, $link, $active);
+                    $add = false;
+                    break;
+                }
+            }
+        }
+        if($add){
+            $parentNode[3][] = array($name, $link, $active);
+        }
+    }
 
-	protected static function addEntry($controller, $active = false){
-		\Joomplace\Library\JooYii\Helpers\JYText::def(strtoupper(self::$option.'_'.$controller),ucfirst($controller));
-		\JHtmlSidebar::addEntry(
-			\Joomplace\Library\JooYii\Helpers\JYText::_(strtoupper(self::$option.'_'.$controller)),
-			\JRoute::_('index.php?option='.self::$option.'&controller='.$controller),
-			$active
-		);
-	}
+    public static function addEntry($name, $link = '', $active = false)
+    {
+        $parentNode = array();
+        $parentNode[3] = &static::$entries;
+        static::addEntryCascade($parentNode, $name, $link, $active);
+    }
 
-	protected static function addCustomEntry($array = array(), $active = false){
-		$path = array();
-		$array['extension'] = self::$option;
-		foreach ($array as $key => $val){
-			$path[] = "$key=$val";
-		}
-		\JHtmlSidebar::addEntry(
-			\Joomplace\Library\JooYii\Helpers\JYText::_(strtoupper(implode("_",$array))),
-			\JRoute::_('index.php?'.implode("&",$path)),
-			$active
-		);
-	}
 
 }

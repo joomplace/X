@@ -1,540 +1,362 @@
 <?php
 /**
- * @package     Joomplace\Library\JooYii
- *
- * @copyright   Alexandr Kosarev
- * @license     GPL2
+ * Created by PhpStorm.
+ * User: Alexandr
+ * Date: 22.06.2017
+ * Time: 15:26
  */
 
-namespace Joomplace\Library\JooYii;
-use Joomplace\Library\JooYii\Helpers\JYText;
+namespace JoomPlaceX;
 
-/**
- * Controller class for implementing C letter of new Joomla!CMS MVC
- * (JooYii MVC)
- *
- * @package     Joomplace\Library\JooYii
- *
- * @since       1.0
- */
-class Controller
+
+class Controller extends \JControllerBase
 {
-	protected $_classreflection;
-	protected $_model;
-	protected $_models = array();
-	private $_storage = array();
+    protected $_default_action = 'display';
 
-	public function setStorage($storage, $value)
-	{
-		$this->_storage[$storage] = $value;
-	}
+    protected $_actions_map
+        = array(
+            'save'      => 'apply',
+            'save2copy' => 'apply',
+            'save2new'  => 'apply',
+        );
 
-	public function getStorage($storage = null)
-	{
-		$data = new \Joomla\Registry\Registry($this->_storage);
-		if(is_null($storage)){
-			return $data;
-		}
-		return $data->get($storage,null);
-	}
+    public function execute($action = null)
+    {
+        if (!$action) {
+            $action = $this->_default_action;
+        }
 
-	/**
-	 * Controller constructor
-	 *
-	 * @since 1.0
-	 */
-	public function __construct()
-	{
-		if (!class_exists('JToolbarHelper'))
-		{
-			jimport('includes.toolbar', JPATH_ADMINISTRATOR);
-		}
-		$this->setModel($this->getClassName());
-	}
+        if (isset($this->_actions_map[$action])) {
+            $action = $this->_actions_map[$action];
+        }
 
-	/**
-	 * Alias to JooYii Helper
-	 *
-	 * @return mixed
-	 *
-	 * @since 1.0
-	 */
-	protected function getClassName()
-	{
-		return Helper::getClassName($this);
-	}
+        $arguments = array();
+        foreach ($this->getArgs($action) as $param) {
+            /** @var \ReflectionParameter $param */
+            /*
+             * TODO: set initial filter from config
+             */
+            $filter = 'RAW';
+            if ($param->isArray()) {
+                $filter = 'array';
+            }
 
-	/**
-	 * Method to get helper class
-	 *
-	 * @param null $helpername
-	 * @param bool $force_new
-	 *
-	 * @return mixed
-	 *
-	 * @since 1.0
-	 */
-	public function getHelper($helpername = null, $force_new = true)
-	{
-		$helperClass = $this->getClassParentNameSpacing() . '\\Helper\\' . $helpername;
-		$helper      = new $helperClass();
+            $value = $this->input->get($param->name, null, $filter);
 
-		return $helper;
-	}
+            if ($value === null) {
+                if (!$param->isDefaultValueAvailable()) {
+                    // TODO: improve
+                    throw new \Exception("Need to define $param->name", 500);
+                } else {
+                    $value = $param->getDefaultValue();
+                }
+            }
 
-	/**
-	 * Alias to JooYii Helper
-	 *
-	 * @return mixed
-	 *
-	 * @since 1.0
-	 */
-	protected function getClassParentNameSpacing()
-	{
-		return Helper::getClassParentNameSpacing($this);
-	}
+            $arguments[] = $value;
+        }
 
-	/**
-	 * Proxy to call Model (default for controller) method and
-	 * pass array of data
-	 *
-	 * @param string $task  Method to call
-	 * @param array  $jform Array of data to pass
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public final function model($task, Array $jform)
-	{
-		$model = $this->getModel();
-		$model->$task($jform);
-	}
+        if ($this->methodExists($action)) {
+            return call_user_func_array(array($this, $action), $arguments);
+        } else {
+            // TODO: improve
+            throw new \Exception("Method `" . $this->getClassName() . '::'
+                . $action . "` doesn't exist");
+        }
+    }
 
-	/**
-	 * Get components model
-	 *
-	 * @param null|string $modelname Model to load
-	 * @param bool        $force_new Flag to force new
-	 *
-	 * @return Model
-	 *
-	 * @since 1.0
-	 */
-	public function getModel($modelname = null, $force_new = false)
-	{
-		if (is_null($modelname))
-		{
-			$modelname = $this->_model;
-		}
-		if (!isset($this->_models[$modelname]) || $force_new)
-		{
-			$modelClass = $this->getClassParentNameSpacing() . '\\Model\\' . $modelname;
-			if (class_exists($modelClass))
-			{
-				$this->_models[$modelname] = new $modelClass();
-			}
-			else
-			{
-				$this->_models[$modelname] = false;
-			}
-		}
+    protected function getArgs($method)
+    {
+        if ($this->methodExists($method)) {
+            $ref    = new \ReflectionMethod($this->getClassName(), $method);
+            $result = $ref->getParameters();
+        } else {
+            $result = array();
+        }
 
-		return $this->_models[$modelname];
-	}
+        return $result;
+    }
 
-	/**
-	 * @param string $model
-	 *
-	 * @since 1.0
-	 */
-	public function setModel($model)
-	{
-		$this->_model = $model;
-	}
+    protected function methodExists($method, $in_target = false)
+    {
+        if (method_exists($this->getClassName(), $method)) {
+            if ($in_target) {
+                $ref = new \ReflectionMethod($this->getClassName(), $method);
+                if (strtolower($ref->getDeclaringClass()->name)
+                    == strtolower($this->getClassName())
+                ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * Method to proxy task to somewhere else
-	 *
-	 * @param string $task Task to process
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function proxy($task)
-	{
-		$task = explode('.', $task);
-		unset($task[0]);
-		$task = array_values($task);
-		/*
-		 * TODO: think on further extension
-		 */
-		switch ($task[0])
-		{
-			case 'model':
-				$model = $this->getModel();
-				if (Helper::callBindedFunction($model, $task[1]) !== false)
-				{
-					Helper::callBindedFunction($this, 'index');
-				}
-				else
-				{
-					echo 'smth went wrong';
-				}
-				break;
-			case 'field':
-				$field = \JFactory::getApplication()->input->get('field_type','','safe_html');
-				$field_method = \JFactory::getApplication()->input->get('field_method','process','string');
-				if($field && method_exists($field,$field_method)){
-					Helper::callBindedFunction($field,$field_method);
-				}
-				break;
-		}
-		\JFactory::getApplication()->redirect('index.php?'.\JUri::getInstance()->getQuery(),200);
-		die('exit'); // we never must go this far...
-		/**
-		 * but we get here on delete and publish at least... need to redirect model case?
-		 */
-	}
+    public function getClassName()
+    {
+        return get_called_class();
+    }
 
-	/**
-	 * Alias for edit(0)
-	 *
-	 * @since 1.0
-	 */
-	public function add($return_url = '')
-	{
-		$this->edit(array(),$return_url);
-	}
+    public function index(array $filter = array())
+    {
+        $filter = array_filter($filter, function($v){
+            return $v?true:($v===''?false:true);
+        });
+        /** @var \JoomplaceX\Model $model */
+        $model = $this->getModel();
+        $vars  = array(
+            'columns'    => $model->getColumns('list'),
+            'state'      => $model->getState(),
+            'filter'     => $filter,
+            'items'      => $model->getList(false, false, $filter),
+            'pagination' => $model->getPagination(),
+        );
+        $this->display(lcfirst($this->getClassShortName()), $vars);
+    }
 
-	/**
-	 * Default method to edit record of default model
-	 *
-	 * @param array $cid Array type used for J compatibility only
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function edit(array $cid = array(), $return_url = '')
-	{
-		$model = $this->getModel(null, true);
-		if ($cid)
-		{
-			$model->load($cid[0]);
-			\JToolbarHelper::title(JYText::_(strtoupper($this->getClassName()) . '_EDIT_TITLE'), 'pencil');
-		}
-		else
-		{
-			\JToolbarHelper::title(JYText::_(strtoupper($this->getClassName()) . '_NEW_TITLE'), 'pencil-2');
-		}
+    /**
+     * @param null $class  Model Class name
+     * @param null $config Config to pass to constructor of model
+     *
+     * @return Model
+     *
+     * @since 2.0
+     */
+    protected function getModel($class = null, $config = null)
+    {
+        if (strpos($class, '\\') === false) {
+            $ns                 = explode('\\', $this->getClassName());
+            $ns[count($ns) - 2] = 'Model';
+            if ($class) {
+                $ns[count($ns) - 1] = $class;
+            }
+            $class = implode('\\', $ns);
+        }
 
-		$vars = array(
-			'item' => $model,
-			'return_url' => $return_url,
-		);
+        return $model = new $class($config);
+    }
 
-		$key = $model->getKeyName();
-		\JToolbarHelper::apply('apply');
-		\JToolbarHelper::save('save');
-		if ($model->$key)
-		{
-			\JToolbarHelper::save2copy('save2copy');
-		}
-		\JToolbarHelper::save2new('save2new');
-		$this->generateCancelBtn();
+    public function display($view, $vars = array())
+    {
+        $type   = \JFactory::getDocument()->getType();
+        $output = $this->render($view, $type, $vars);
+        switch ($type) {
+            case 'json':
+                $output = json_encode($output);
+                echo $output;
+                break;
+            case 'pdf':
+                // TODO: set content type and modify document or even die
+            default:
+                echo $output;
+        }
+    }
 
-		echo $this->render($this->getClassName().'.edit', $vars);
-	}
+    public function render($view, $type, $vars = array())
+    {
+        if(strpos($view,'.')){
+            list($view, $layout) = explode('.', $view);
+        }else{
+            $layout = 'default';
+        }
+        $viewConfig = array(
+            'name'   => $view,
+            'layout' => $layout
+        );
+        $ns         = explode('\\', $this->getClassName());
 
-	/**
-	 * Method to render Html markup of passed View
-	 *
-	 * @param string $view View name or view.layout
-	 * @param array  $vars Variables
-	 *
-	 * @return string Html markup
-	 *
-	 * @since 1.0
-	 */
-	protected function render($viewname, $vars)
-	{
-		$view = $this->getView($viewname);
-		$view->setNamespace($this->getClassParentNameSpacing());
-		foreach ($vars as $var => $value)
-		{
-			$view->setVar($var, $value);
-		}
-		$this->preRender($viewname, $view->getLayout(),$vars);
+        array_pop($ns);
+        array_pop($ns);
 
-		return $view->render('',$vars);
-	}
+        $viewClass = implode('\\', $ns) . '\views\\' . $view . '\\'
+            . ucfirst($type);
+        if (class_exists($viewClass)) {
+            /** @var \JoomplaceX\View $view */
+            $view = new $viewClass($viewConfig);
+            foreach ($vars as $k => $v) {
+                $view->set($k, $v);
+            }
+            $output = $view->render(null);
+        } else {
+            /** @var \JViewLegacy $view */
+            $view = new \JViewLegacy($viewConfig);
+            foreach ($vars as $k => $v) {
+                $view->set($k, $v);
+            }
+            $output = $view->loadTemplate(null);
+        }
 
-	/**
-	 * Get view object
-	 *
-	 * @param string $view View class name
-	 *
-	 * @return View View object
-	 *
-	 * @since 1.0
-	 */
-	private function getView($view = null)
-	{
-		if (is_null($view))
-		{
-			$view = $this->getClassName();
-		}
-		$view = new View($view);
+        return $output;
+    }
 
-		return $view;
-	}
+    public function getClassShortName($class = null)
+    {
+        if ($class == null) {
+            $class = $this->getClassName();
+        }
+        $path = explode('\\', $class);
 
-	/**
-	 * Alias for edit & add
-	 *
-	 * @param array $jform Form data
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function saveandnew(array $jform)
-	{
-		$this->apply($jform, true);
-	}
+        return array_pop($path);
+    }
 
-	/**
-	 * Apply changes to entry
-	 *
-	 * @param array $jform Form data
-	 * @param bool  $tonew Is new form should be rendered
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function apply(array $jform, $tonew = false, $return_url = '')
-	{
-		if(!$this->saveRecord($jform)){
-			$tonew = false;
-		}
-		$model = $this->getModel();
-		if (!$tonew)
-		{
-			$key = $model->getKeyName();
-			$this->edit(array($model->$key), $return_url);
-		}
-		else
-		{
-			$this->edit(array(), $return_url);
-		}
-	}
+    public function add()
+    {
+        $this->edit(array(0));
+    }
 
-	/**
-	 * Alias to save item & changes to a new entry
-	 *
-	 * @param array $jform Form data
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function save2copy(array $jform)
-	{
-		$jform['id'] = '';
-		$this->apply($jform);
-	}
+    public function edit(array $cid)
+    {
+        $id = array_shift($cid);
+        $model = $this->getModel(null, $id);
+        $vars  = array(
+            'item' => $model,
+        );
+        $this->display(lcfirst($this->getClassShortName()) . '.edit', $vars);
+    }
 
-	/**
-	 * Alias to save item and go to a new entry
-	 *
-	 * @param array $jform Form data
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function save2new(array $jform)
-	{
-		$this->apply($jform, true);
-	}
+    public function apply(array $jform, $task)
+    {
 
-	/**
-	 * Default method to save
-	 *
-	 * @param array $jform Form data
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function save(array $jform, $return_url = '')
-	{
-		if($this->saveRecord($jform)){
-			$this->cancel($return_url);
-		}else{
-			$model = $this->getModel();
-			$key = $model->getKeyName();
-			$this->edit(array($model->$key), $return_url);
-		}
-	}
+        /** @var Model $model */
+        $model = $this->getModel();
+        $model->load($jform[$model->getKeyName()]);
+        if ($task == 'save2copy') {
+            $jform[$model->getKeyName()] = '';
+        }
+        if ($id = $this->storeRecord($jform)) {
+            $jform[$model->getKeyName()] = $id;
+        }
+        switch ($task) {
+            case 'save':
+                $this->cancel();
+                break;
+            case 'save2new':
+                $id = 0;
+            case 'save2copy':
+            default:
+                if ($id) {
+                    $this->app->redirect(\JRoute::_('index.php?option='
+                        . $this->input->get('option') . '&view='
+                        . $this->input->get('view') . '&task=edit&cid[]=' . $id,
+                        false));
+                } else {
+                    $this->app->redirect(\JRoute::_('index.php?option='
+                        . $this->input->get('option') . '&view='
+                        . $this->input->get('view') . '&task=add', false));
+                }
+        }
+    }
 
-	public function saveRecord(array $jform){
-		$model = $this->getModel();
-		$form = $model->getForm();
-//		$jform = $form->filter($jform);
-		/** @var \Joomla\Registry\Registry $data */
-		$form->bind($jform);
-		/* recursive jform */
-		$rjform = $form->getData()->toArray();
-		$return = $form->validate($rjform);
-		if (!$return)
-		{
-			\JFactory::getApplication()->setUserState($model->getContext(),$rjform);
-			array_map(function($e){
-				\JFactory::getApplication()->enqueueMessage($e->getMessage(),'error');
-			},$form->getErrors());
-			return false;
-		}else{
-			if(!$model->save($jform)){
-				return false;
-			}else{
-				\JFactory::getApplication()->setUserState($model->getContext(),null);
-			}
-		}
-		return true;
-	}
+    protected function storeRecord(array $jform)
+    {
+        /** @var Model $model */
+        $model = $this->getModel();
+        $form  = $model->getForm();
+        // TODO: filter but workaround issue with form filtering out fielded data
+//        $jform = $form->filter($jform);
+        /** @var \Joomla\Registry\Registry $data */
+        $form->bind($jform);
+        /* recursive jform */
+        $rjform = $form->getData()->toArray();
+        $return = $form->validate($rjform);
+        if (!$return) {
+            \JFactory::getApplication()
+                ->setUserState($model->getContext(), $rjform);
+            array_map(function ($e) {
+                \JFactory::getApplication()
+                    ->enqueueMessage($e->getMessage(), 'error');
+            }, $form->getErrors());
 
-	/**
-	 * Default list render and echo action
-	 *
-	 * @param bool        $limit      Limit of records
-	 * @param int         $limitstart Offset
-	 * @param bool|string $view       View name
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function index($limit = false, $limitstart = 0, $view = false)
-	{
-		$model = $this->getModel();
-		$vars  = array();
-		if ($model)
-		{
-			$this->generateNewBtn();
-			$state = $model->getState();
-			if ($limit !== false)
-			{
-				$items = $model->getList($limitstart, $limit, $this->getStorage('conditions'));
-			}
-			else
-			{
-				$items = $model->getList();
-			}
-			$pagination = $model->getPagination();
-			$vars       = array(
-				'state'      => $state,
-				'items'      => $items,
-				'pagination' => $pagination,
-			);
-		}
-		echo $this->render(($view ? $view : $this->getClassName()), $vars);
-	}
+            return false;
+        } else {
+            if (!$model->save($jform)) {
+                return false;
+            } else {
+                \JFactory::getApplication()
+                    ->setUserState($model->getContext(), null);
+            }
+        }
+        $key = $model->getKeyName();
 
-	public function generateNewBtn($appendix = ''){
-		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Loader::getClassScope(Helper::getClassName(new static(),false))).'&controller='.$this->getClassName().'&task=add'.$appendix,JYText::_('JYCREATE'),'new');
-	}
+        return $model->$key;
+    }
 
-	public function generateCancelBtn($appendix = ''){
-		\JToolbarHelper::link('index.php?option=com_'.lcfirst(Loader::getClassScope(Helper::getClassName(new static(),false))).'&controller='.$this->getClassName().'&task=index'.$appendix,JYText::_('JYCANCEL'),'cancel');
-	}
+    public function cancel()
+    {
+        $this->app->redirect(\JRoute::_('index.php?option='
+            . $this->input->get('option') . '&view='
+            . $this->input->get('view'), false));
+    }
 
-	/**
-	 *  Alias for index
-	 *
-	 * @since 1.0
-	 */
-	public function cancel($return_url = '')
-	{
-		if(!$return_url){
-			$input = \JFactory::getApplication()->input;
-			$return_url = 'index.php?option=' . $input->get('option') . '&controller=' . $input->get('controller',$this->getClassName()) . '&task=index';
-		}
-		\JFactory::getApplication()->redirect(\JRoute::_($return_url));
-	}
+    public function delete(array $cid)
+    {
+        $model         = $this->getModel();
+        $unprocessed   = array_filter(array_map(function ($id) use ($model) {
+            if ($model->delete($id)) {
+                return false;
+            } else {
+                return $id;
+            }
+        }, $cid));
+        $count_deleted = count($cid) - count($unprocessed);
+        if ($count_deleted) {
+            \JFactory::getApplication()
+                ->enqueueMessage(\JText::plural(strtoupper($this->input->get('option')
+                    . '_' . $this->getClassShortName() . '_N_DELETED'),
+                    $count_deleted));
+        }
+        if (count($unprocessed)) {
+            \JFactory::getApplication()
+                ->enqueueMessage(\JText::plural(strtoupper($this->input->get('option')
+                    . '_' . $this->getClassShortName() . '_N_NOT_DELETED'),
+                    count($unprocessed)), 'error');
+            // TODO: Process undeleted checkboxes checkboxes
+        }
+        $this->cancel();
+    }
 
-	/**
-	 * Method to support Joomla!Cms drag&drop ordering
-	 *
-	 * @param array $cid
-	 * @param array $order
-	 *
-	 *
-	 * @since 1.0
-	 */
-	public function saveOrderAjax(array $cid, array $order)
-	{
+    public function unpublish(array $cid)
+    {
+        $this->publish($cid, 0);
+    }
 
-		// Sanitize the input
-		\JArrayHelper::toInteger($cid);
-		\JArrayHelper::toInteger($order);
+    public function publish(array $cid, $state = 1)
+    {
+        $model         = $this->getModel();
+        $unprocessed   = array_filter(array_map(function ($id) use (
+            $model,
+            $state
+        ) {
+            if ($model->publish($id, $state)) {
+                return false;
+            } else {
+                return $id;
+            }
+        }, $cid));
+        $count_deleted = count($cid) - count($unprocessed);
+        if ($count_deleted) {
+            \JFactory::getApplication()
+                ->enqueueMessage(\JText::plural(strtoupper($this->input->get('option')
+                    . '_' . $this->getClassShortName() . '_N_' . ($state ? ''
+                        : 'UN') . 'PUBLISHED'), $count_deleted));
+        }
+        if (count($unprocessed)) {
+            \JFactory::getApplication()
+                ->enqueueMessage(\JText::plural(strtoupper($this->input->get('option')
+                    . '_' . $this->getClassShortName() . '_N_NOT_' . ($state
+                        ? '' : 'UN') . 'PUBLISHED'), count($unprocessed)),
+                    'error');
+            // TODO: Process undeleted checkboxes checkboxes
+        }
+        $this->cancel();
+    }
 
-		// Get the model
-		$model = $this->getModel();
-
-		// Save the ordering
-		$return = $model->saveorder($cid, $order);
-
-		if ($return)
-		{
-			echo "1";
-		}
-
-		// Close the application
-		\JFactory::getApplication()->close();
-	}
-
-	protected function preRender($viewname, $layout, &$vars){
-		if(class_exists(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar')){
-			call_user_func_array(array(Helper::getClassParentNameSpacing($this).'\\Helper\\Sidebar','setControllersEntries'),array($viewname,$layout));
-		}
-		if(!isset($vars['option'])){
-			$vars['option'] = 'com_'.lcfirst(Helper::getClassName($this));
-		}
-		if(!isset($vars['form_action'])){
-			$vars['form_action'] = 'index.php?'.\JUri::getInstance()->getQuery();
-		}
-		if(!isset($vars['form_params'])){
-			$fparams = array();
-			array_map(function ($kpair) use (&$fparams){
-				list($k,$p) = explode('=',$kpair);
-				$fparams[$k] = $p;
-			},explode('&',\JUri::getInstance()->getQuery()));
-			$vars['form_params'] = $fparams;
-		}
-	}
-
-	/**
-	 * Rest responder | Don't blame me for this
-	 *
-	 * @param String  $data   data of response
-	 * @param boolean $status is everything went good
-	 *
-	 * @since 1.0
-	 */
-	protected function respondJson($data, $status)
-	{
-		if (!$status)
-		{
-			echo "<pre>";
-			print_r($data);
-			echo "</pre>";
-			header('HTTP/1.1 500 Internal Server Error');
-			trigger_error("Issue in processing", E_USER_ERROR);
-		}
-		ob_start();
-		$response       = new \stdClass();
-		$response->data = $data;
-		$log            = ob_get_contents();
-		ob_end_clean();
-		$response->log = $log;
-		header('Content-Type: application/json');
-		echo json_encode($response);
-		exit();
-	}
-
+    protected function methodDefined($method)
+    {
+        return $this->methodExists($method, true);
+    }
 }

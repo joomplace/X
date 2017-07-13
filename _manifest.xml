@@ -1,0 +1,17 @@
+<extension type="library" version="3.7" method="upgrade">
+    <libraryname>JoomPlaceX</libraryname>
+    <name>JoomPlaceX</name>
+    <author>Alexandr Kosarev</author>
+    <creationDate>July 2017</creationDate>
+    <copyright>(C) 2016 - 2017 Joomplace. All rights reserved.</copyright>
+    <license>GPL3</license>
+    <authorEmail>kosarev@joomplace.com</authorEmail>
+    <authorUrl>https://www.joomplace.com</authorUrl>
+    <version>0.9</version>
+    <files>
+        <filename>Dispatcher.php</filename>
+    </files>
+    <updateservers>
+        <server type="extension" priority="1" name="JoomPlaceX Update Site">https://updates.joomplace.com/X.xml</server>
+    </updateservers>
+</extension>
