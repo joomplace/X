@@ -75,7 +75,7 @@ if ($saveOrder)
             <?php
             /**
              * @var int $i
-             * @var \Joomplace\Component\Joomlaquiz\Administrator\Base\Model $row
+             * @var \JoomPlaceX\Model $row
              */
             foreach ($rows as $i => $row){
                 ?>

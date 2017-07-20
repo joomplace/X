@@ -9,6 +9,8 @@
 namespace JoomPlaceX;
 
 
+use Joomla\Registry\Registry;
+
 class Controller extends \JControllerBase
 {
     protected $_default_action = 'display';

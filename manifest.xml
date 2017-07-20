@@ -9,7 +9,15 @@
     <authorUrl>https://www.joomplace.com</authorUrl>
     <version>0.9</version>
     <files>
+        <folder>form</folder>
+        <folder>layouts</folder>
+        <folder>views</folder>
+        <filename>Controller.php</filename>
         <filename>Dispatcher.php</filename>
+        <filename>Helper.php</filename>
+        <filename>Model.php</filename>
+        <filename>Sidebar.php</filename>
+        <filename>View.php</filename>
     </files>
     <updateservers>
         <server type="extension" priority="1" name="JoomPlaceX Update Site">https://updates.joomplace.com/X.xml</server>

@@ -28,11 +28,11 @@ class Dispatcher extends \JControllerBase
 
     public function dispatch($task = null)
     {
+        $this->input->def('view',$this->default_view);
+
         if(\JFactory::getApplication()->isClient('administrator')){
             $this->addMustHaveButtons();
         }
-
-        $this->input->def('view',$this->default_view);
 
         if(strpos($task,'.')){
             list($controllerName, $action) = explode('.', $task);

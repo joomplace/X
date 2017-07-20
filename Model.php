@@ -13,6 +13,7 @@ namespace JoomPlaceX;
  */
 
 use Joomla\Registry\Registry;
+use JTable;
 
 abstract class Model extends \JTable
 {
@@ -38,6 +39,7 @@ abstract class Model extends \JTable
     protected $_user_state;
     /** @var string $_table */
     protected $_table;
+    /** @var string $_context Used for gerating Asset name and other*/
     protected $_context;
     protected $_ignore_in_xml
         = array(
@@ -86,6 +88,15 @@ abstract class Model extends \JTable
      *
      * @since 1.0
      */
+    public static function getShortName(){
+        static $shortName = '';
+        if(!$shortName){
+            $ns = explode('\\', static::class);
+            $shortName = array_pop($ns);
+        }
+        return $shortName;
+    }
+
     protected static $_field_defenitions
         = array(
             'id'       => array(
@@ -99,18 +110,6 @@ abstract class Model extends \JTable
                 'nullable'   => false,
                 'default'    => null,
                 'extra'      => 'auto_increment',
-            ),
-            'asset_id' => array(
-                'mysql_type' => 'int(10) unsigned',
-                'type'       => 'hidden',
-                'filter'     => 'unset',
-                'group'      => '',
-                'fieldset'   => 'basic',
-                'class'      => '',
-                'read_only'  => null,
-                'nullable'   => false,
-                'default'    => 0,
-                'hide_at'    => array('list', 'read', 'form'),
             ),
             'ordering' => array(
                 'mysql_type' => 'int(11) unsigned',
@@ -135,8 +134,6 @@ abstract class Model extends \JTable
      * @since 1.0
      */
     protected static $_public_instances = null;
-
-    public static $_JSON_process = array();
 
     public function __construct($conditions = null, $reset = true)
     {
@@ -189,6 +186,14 @@ abstract class Model extends \JTable
         return true;
     }
 
+    protected static function getDefinitions(){
+        static $definitions = null;
+        if(!$definitions){
+            $definitions = static::gatherDefinitions();
+        }
+        return $definitions;
+    }
+
     /**
      * Triggers integrety fixing
      *
@@ -200,11 +205,10 @@ abstract class Model extends \JTable
      */
     protected function checkIntegrety($force = false)
     {
-        if (!static::$_integrety_checked || $force) {
+        if (!static::isIntegretyChecked() || $force) {
             if(self::$_public_instances===null){
                 self::$_public_instances = new \Joomla\Registry\Registry();
             }
-            static::gatherDefinitions();
             // TODO: redo check as we have Gfield\subfield now
             $tables = $this->_db->getTableList();
             if (!in_array(str_replace('#__', $this->_db->getPrefix(),
@@ -218,14 +222,14 @@ abstract class Model extends \JTable
             }
 
             $_column_defenitions = array();
-            foreach (static::$_field_defenitions as $field => $defenition) {
+            foreach (static::getDefinitions() as $field => $defenition) {
                 if(strpos($field,'.')){
                     /*
                      * JSON grouping column
                      */
                     list($field) = explode('.',$field);
                     if(!in_array($field, $_column_defenitions)){
-                        static::$_JSON_process[] = $field;
+                        static::processAsJson($field);
                         $defenition = array(
                             'mysql_type' => 'varchar(2056)',
                             'default' => '{}',
@@ -245,11 +249,11 @@ abstract class Model extends \JTable
                     base64_encode($defenition->toString()),
                     $defenition->get('extra',''));
             }
-            static::$_integrety_checked = true;
+            static::isIntegretyChecked(true);
             self::$_columns[$this->_table] = $this->_db->getTableColumns($this->_table,false);
         }
 
-        return $this->isIntegretyChecked();
+        return static::isIntegretyChecked();
     }
 
     protected static function getXmlFile(){
@@ -257,9 +261,32 @@ abstract class Model extends \JTable
         return dirname($rf->getFileName()).DIRECTORY_SEPARATOR.'definitions'.DIRECTORY_SEPARATOR.strtolower($rf->getShortName()).'.xml';
     }
 
+    protected static function additionalFieldsPaths($add = null){
+        static $paths = array();
+        if($add){
+            if(is_array($add)){
+                array_map(function ($path){
+                    static::additionalFieldsPaths($path);
+                },$add);
+            }else{
+                if(strpos($add, JPATH_SITE)===false){
+                    $add = JPATH_SITE.$add;
+                }
+                if(!in_array($add, $paths)){
+                    $paths[] = $add;
+                    \JFormHelper::addFieldPath($add);
+                }
+            }
+        }
+        return $paths;
+    }
+
     protected static function parseXmlDefinitions(\SimpleXMLElement $xmlElement, $fieldsetprefix = '', $grouping_field = ''){
         $fields = $_fields = array();
         $fieldsetname = trim($fieldsetprefix.($xmlElement->getName()!='fields'?'.'.(string)$xmlElement['name']:''),'.');
+        if(isset($xmlElement->attributes()['addfieldpath'])){
+            static::additionalFieldsPaths((string)$xmlElement->attributes()['addfieldpath']);
+        }
         array_map(function(\SimpleXMLElement $x) use (&$fields, $fieldsetname, $grouping_field){
             $field = array();
             /**
@@ -304,15 +331,17 @@ abstract class Model extends \JTable
     }
 
     protected static function gatherDefinitions(){
+        $defs = array();
         $xml_file = static::getXmlFile();
         if(is_file($xml_file)){
             $xml = simplexml_load_file($xml_file);
             $fields = static::parseXmlDefinitions($xml);
-            static::$_field_defenitions = array_merge(static::$_field_defenitions, $fields);
+            $defs = array_merge(static::$_field_defenitions, $fields);
         }
         if (static::$_fields) {
-            static::$_field_defenitions = array_merge(static::$_field_defenitions, static::$_fields);
+            $defs = array_merge($defs, static::$_fields);
         }
+        return $defs;
     }
 
     /**
@@ -444,9 +473,14 @@ abstract class Model extends \JTable
      *
      * @since 1.0
      */
-    public function isIntegretyChecked()
+    public static function isIntegretyChecked($state = false)
     {
-        return static::$_integrety_checked;
+        static $_integrety_checked = false;
+        if($state){
+            $_integrety_checked = $state;
+        }
+
+        return $_integrety_checked;
     }
 
     /**
@@ -518,7 +552,7 @@ abstract class Model extends \JTable
             if($fieldset_name){
                 $xml = $xml->addChild('fieldset');
                 $xml->addAttribute('name',$fieldset_name);
-                $xml->addAttribute('lable',strtoupper($fieldset_name.'_label'));
+                $xml->addAttribute('label',strtoupper($fieldset_name.'_label'));
                 $this->buildXmlElement($name,$def->toArray(),$xml);
             }else{
                 /** @var \SimpleXMLElement $field */
@@ -536,6 +570,12 @@ abstract class Model extends \JTable
                 /*if(!isset($definition['name'])){*/
                     $definition['name'] = $name;
                 /*}*/
+                if(!isset($definition['label'])){
+                    $definition['label'] = strtoupper(static::getShortName().'_'.$definition['name'].'_LABEL');
+                }
+                if(!isset($definition['description'])){
+                    $definition['description'] = $definition['label'].'_DESC';
+                }
                 foreach ($definition as $attr => $attr_value) {
                     if (!in_array($attr, $this->_ignore_in_xml)) {
                         if (in_array($attr, array('option'))) {
@@ -568,12 +608,13 @@ abstract class Model extends \JTable
                 $this->_table) . ($this->$key ? ('.' . $this->$key) : '');
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><form></form>');
         $defs = new Registry();
-        foreach (static::$_field_defenitions as $k => $f){
+        foreach (static::getDefinitions() as $k => $f){
             $defs->set($k,$f);
         }
         foreach ($defs as $field => $def){
             $this->buildXmlElement($field, $def, $xml);
         }
+
         $form = \JForm::getInstance($name, $xml->asXML(),
             array('control' => 'jform'), true, false);
         $form->bind($this->getProperties());
@@ -581,6 +622,7 @@ abstract class Model extends \JTable
             $form->bind(\JFactory::getApplication()
                 ->getUserState($this->getContext()));
         }
+
         $this->preprocessForm($form);
 
         return $form;
@@ -606,7 +648,27 @@ abstract class Model extends \JTable
      */
     protected function preprocessForm(\JForm &$form)
     {
-
+        if(array_key_exists('asset_id',$this->getFields())){
+            $xml = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'form'.DIRECTORY_SEPARATOR.'permissions.xml');
+            $contextArr = explode('.',$this->_context);
+            $component = array_shift($contextArr);
+            $xml = str_replace('{{component}}', $component,$xml);
+            $permissionsLoaded = $form->load($xml, false);
+            /*
+             * TODO: remove as soon as joomla is flexible enough
+             * Fix of joomla permissions check script
+             */
+            $options = new Registry;
+            $options->set('relative', true);
+            $options->set('pathOnly', true);
+            $file = 'form/permissions-fix.js';
+            $path = \JHtml::script($file,$options->toArray());
+            if(!$path){
+                $path = \JLoader::getNamespaces('psr4')['JoomPlaceX'][0].DIRECTORY_SEPARATOR.$file;
+                $path = str_replace(JPATH_SITE,'',$path);
+            }
+            \JFactory::getDocument()->addScript($path);
+        }
     }
 
     /**
@@ -689,6 +751,18 @@ abstract class Model extends \JTable
             $db->setQuery($query);
         }
         $this->_cache['list'] = $db->loadObjectList($by, $class?$class:get_class($this));
+        if(is_subclass_of($class?$class:get_class($this), \JTable::class)){
+            $result = true;
+            /** @var Model $row */
+            foreach ($this->_cache['list'] as &$row){
+                $row->_observers->update('onAfterLoad', array(&$result, $row->getProperties()));
+                /*
+                 * TODO: remove bind & link(&$row)
+                 * Temp hack - until observers are not implemented for JSON
+                 */
+                $row->bind($row->getProperties());
+            }
+        }
 
         return $this->_cache['list'];
     }
@@ -817,7 +891,7 @@ abstract class Model extends \JTable
     public function getColumns($lrf = 'list', $include_hidden = false)
     {
         if (!$include_hidden) {
-            $fields = array_filter(static::$_field_defenitions,
+            $fields = array_filter(static::getDefinitions(),
                 function ($field) use ($lrf) {
                     if ($field['type'] == 'hidden'
                         || (isset($field['hide_at'])
@@ -829,7 +903,7 @@ abstract class Model extends \JTable
                     return true;
                 });
         } else {
-            $fields = static::$_field_defenitions;
+            $fields = static::getDefinitions();
         }
         $columns = array_keys($fields);
 
@@ -938,7 +1012,7 @@ abstract class Model extends \JTable
      */
     public function renderListControl($field)
     {
-        $defenition = static::$_field_defenitions[$field];
+        $defenition = static::getDefinitions()[$field];
 
         $field_processer = '_renderListControl' . $field;
         if (method_exists($this, $field_processer)) {
@@ -948,23 +1022,28 @@ abstract class Model extends \JTable
             if (method_exists($this, $field_processer)) {
                 $layout = $this->$field_processer($field);
             } else {
-                if (method_exists(static::$_field_defenitions[$field]['type'],
+                if (method_exists(static::getDefinitions()[$field]['type'],
                     'renderHtml')) {
-                    $fieldClass = static::$_field_defenitions[$field]['type'];
+                    $fieldClass = static::getDefinitions()[$field]['type'];
                     // TODO: change to user call
                     $fieldClass = new $fieldClass;
                     $layout = $fieldClass->renderHtml($this->getProperties(), $field);
                 } else {
                     $layout = \JLayoutHelper::render('fields.list.'.$field, $this->$field, dirname(__FILE__).DIRECTORY_SEPARATOR.'layouts');
                     if(!$layout){
-                        $layout = \JLayoutHelper::render('fields.list.'.static::$_field_defenitions[$field]['type'], $this->$field, dirname(__FILE__).DIRECTORY_SEPARATOR.'layouts');
+                        $layout = \JLayoutHelper::render('fields.list.'.static::getDefinitions()[$field]['type'], $this->$field, dirname(__FILE__).DIRECTORY_SEPARATOR.'layouts');
                         if(!$layout){
-                            ob_start();
-                            echo "<pre>";
-                            print_r(static::$_field_defenitions[$field]);
-                            echo "</pre>";
-                            $layout = ob_get_contents();
-                            ob_end_clean();
+                            if(\JFactory::getConfig()->get('debug')){
+                                ob_start();
+                                echo $this->$field;
+                                echo "<pre>";
+                                print_r(static::getDefinitions()[$field]);
+                                echo "</pre>";
+                                $layout = ob_get_contents();
+                                ob_end_clean();
+                            }else{
+                                $layout = $this->$field;
+                            }
                         }
                     }
                 }
@@ -981,7 +1060,9 @@ abstract class Model extends \JTable
             if(is_string($this->$field)){
                 $this->$field = new \Joomla\Registry\Registry($this->$field);
             }
-            $this->$field->get(implode('.',$complex_name));
+            return $this->$field->get(implode('.',$complex_name));
+        }else{
+            return $this->$name;
         }
     }
 
@@ -1088,13 +1169,13 @@ abstract class Model extends \JTable
      */
     public function store($updateNulls = false)
     {
-        if (array_key_exists('ordering', static::$_field_defenitions)
+        if (array_key_exists('ordering', static::getDefinitions())
             && !$this->ordering
         ) {
             $this->ordering = $this->getNextOrder();
         }
 
-        foreach (static::$_field_defenitions as $field => $fdata) {
+        foreach (static::getDefinitions() as $field => $fdata) {
             if (method_exists($fdata['type'], 'onBeforeStore')) {
                 if (!call_user_func_array(array(
                     $fdata['type'],
@@ -1109,7 +1190,7 @@ abstract class Model extends \JTable
         /*
          * TODO: move to observer
          */
-        foreach (static::$_JSON_process as $fn){
+        foreach (static::processAsJson() as $fn){
             if(!is_string($this->$fn)){
                 if($this->$fn instanceof Registry){
                     $this->$fn = $this->$fn->toString();
@@ -1119,18 +1200,48 @@ abstract class Model extends \JTable
             }
         }
 
+        /*
+         * Process onfly category creation
+         */
+        $categoryeditField = array_search('categoryedit',array_column(static::getDefinitions(),'type','name'));
+        if($categoryeditField){
+            $formData = \JFactory::getApplication()->input->get('jform',array(),'ARRAY');
+            \JLoader::register('CategoriesHelper', JPATH_ADMINISTRATOR . '/components/com_categories/helpers/categories.php');
+            // Cast catid to integer for comparison
+            $catid = (int) $formData[$categoryeditField];
+            $cat_extension = $this->_context;
+            // Check if New Category exists
+            if ($catid > 0)
+            {
+                $catid = \CategoriesHelper::validateCategoryId($formData[$categoryeditField], $cat_extension);
+            }
+            $gcontext = explode('.', $this->_context)[0];
+            // Save New Categoryg
+            if ($catid == 0 && \JFactory::getUser()->authorise('core.create', $gcontext))
+            {
+                $table = array();
+                $table['title'] = $formData[$categoryeditField];
+                $table['parent_id'] = 1;
+                $table['extension'] = $cat_extension;
+                $table['language'] = $formData['language']?$formData['language']:'*';
+                $table['published'] = 1;
+                // Create new category and get catid back
+                $this->$categoryeditField = \CategoriesHelper::createCategory($table);
+            }
+        }
+
         $return = parent::store($updateNulls);
 
         /*
          * TODO: move to observer
          */
-        foreach (static::$_JSON_process as $fn){
+        foreach (static::processAsJson() as $fn){
             if(is_string($this->$fn)){
                 $this->$fn = new Registry($this->$fn);
             }
         }
 
-        foreach (static::$_field_defenitions as $field => $fdata) {
+        foreach (static::getDefinitions() as $field => $fdata) {
             if (method_exists($fdata['type'], 'onAfterStore')) {
                 if (!call_user_func(array($fdata['type'], 'onAfterStore'),
                     array(&$this, $field, $fdata))
@@ -1187,12 +1298,44 @@ abstract class Model extends \JTable
         /*
          * TODO: move to observer
          */
-        foreach (static::$_JSON_process as $fn){
+        foreach (static::processAsJson() as $fn){
             if(is_string($this->$fn)){
                 $this->$fn = new Registry($this->$fn);
             }
         }
         return $return;
+    }
+
+    protected function _getAssetName()
+    {
+        return $this->_context.'.'.$this->id;
+    }
+
+    protected function _getAssetParentId(JTable $table = null, $id = null)
+    {
+        /** @var \JTableAsset $asset */
+        $asset = JTable::getInstance('Asset');
+        $context = explode('.',$this->_context);
+        while ($context){
+            $asset->loadByName(implode('.',$context));
+            if($asset->id){
+                break;
+            }
+            array_pop($context);
+        }
+        if(!$asset->id){
+            return parent::_getAssetParentId($table, $id);
+        }else{
+            return $asset->id;
+        }
+    }
+
+    protected static function processAsJson($new = null){
+        static $jsonFields = array();
+        if($new && !in_array($new,$jsonFields)){
+            $jsonFields[] = $new;
+        }
+        return $jsonFields;
     }
 
 }
