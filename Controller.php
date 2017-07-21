@@ -28,7 +28,7 @@ class Controller extends \JControllerBase
             $action = $this->_default_action;
         }
 
-        if (isset($this->_actions_map[$action])) {
+        if (!$this->methodExists($action) && isset($this->_actions_map[$action])) {
             $action = $this->_actions_map[$action];
         }
 

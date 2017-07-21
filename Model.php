@@ -804,7 +804,7 @@ abstract class Model extends \JTable
                 ->getUserStateFromRequest('list.limit', 'limit', 20));
             $this->_user_state->set('list.ordering', \JFactory::getApplication()
                 ->getUserStateFromRequest('list.ordering', 'filter_order',
-                    'id'));
+                    array_key_exists('ordering',$this->getFields())?'ordering':'id'));
             $this->_user_state->set('list.direction',
                 \JFactory::getApplication()
                     ->getUserStateFromRequest('list.direction',
@@ -1176,13 +1176,15 @@ abstract class Model extends \JTable
         }
 
         foreach (static::getDefinitions() as $field => $fdata) {
-            if (method_exists($fdata['type'], 'onBeforeStore')) {
-                if (!call_user_func_array(array(
-                    $fdata['type'],
-                    'onBeforeStore'
-                ), array(&$this, $field, $fdata))
-                ) {
-                    return false;
+            if(isset($fdata['type'])){
+                if (method_exists($fdata['type'], 'onBeforeStore')) {
+                    if (!call_user_func_array(array(
+                        $fdata['type'],
+                        'onBeforeStore'
+                    ), array(&$this, $field, $fdata))
+                    ) {
+                        return false;
+                    }
                 }
             }
         };
@@ -1242,11 +1244,13 @@ abstract class Model extends \JTable
         }
 
         foreach (static::getDefinitions() as $field => $fdata) {
-            if (method_exists($fdata['type'], 'onAfterStore')) {
-                if (!call_user_func(array($fdata['type'], 'onAfterStore'),
-                    array(&$this, $field, $fdata))
-                ) {
-                    $return = false;
+            if(isset($fdata['type'])){
+                if (method_exists($fdata['type'], 'onAfterStore')) {
+                    if (!call_user_func(array($fdata['type'], 'onAfterStore'),
+                        array(&$this, $field, $fdata))
+                    ) {
+                        $return = false;
+                    }
                 }
             }
         }
