@@ -22,7 +22,7 @@ class Helper
             $layoutId = explode('.',$layoutId);
             array_pop($layoutId);
             $layoutId = implode('.',$layoutId);
-            self::renderLayout($layoutId,$data,$path,$component,$nestingLevel,$method);
+            $html = self::renderLayout($layoutId,$data,$path,$component,$nestingLevel,$method);
         }
         return $html;
     }
