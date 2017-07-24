@@ -142,10 +142,10 @@ class Controller extends \JControllerBase
         return $model = new $class($config);
     }
 
-    public function display($view, $vars = array())
+    public function display($view, $vars = array(), $layout = 'default')
     {
         $type   = \JFactory::getDocument()->getType();
-        $output = $this->render($view, $type, $vars);
+        $output = $this->render($view, $type, $vars, $layout);
         switch ($type) {
             case 'json':
                 $output = json_encode($output);
@@ -158,12 +158,10 @@ class Controller extends \JControllerBase
         }
     }
 
-    public function render($view, $type, $vars = array())
+    public function render($view, $type, $vars = array(), $layout = 'default')
     {
         if(strpos($view,'.')){
             list($view, $layout) = explode('.', $view);
-        }else{
-            $layout = 'default';
         }
         $viewConfig = array(
             'name'   => $view,
