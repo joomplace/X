@@ -8,10 +8,6 @@
 
 namespace JoomPlaceX;
 
-/*
- * TODO: improve by adding docblock fields description
- */
-
 use Joomla\Registry\Registry;
 use JTable;
 
@@ -331,12 +327,12 @@ abstract class Model extends \JTable
     }
 
     protected static function gatherDefinitions(){
-        $defs = array();
+        $defs = static::$_field_defenitions;
         $xml_file = static::getXmlFile();
         if(is_file($xml_file)){
             $xml = simplexml_load_file($xml_file);
             $fields = static::parseXmlDefinitions($xml);
-            $defs = array_merge(static::$_field_defenitions, $fields);
+            $defs = array_merge($defs, $fields);
         }
         if (static::$_fields) {
             $defs = array_merge($defs, static::$_fields);
@@ -1340,6 +1336,11 @@ abstract class Model extends \JTable
             $jsonFields[] = $new;
         }
         return $jsonFields;
+    }
+
+    public function toStd()
+    {
+        return (object)$this->getProperties();
     }
 
 }
