@@ -17,9 +17,9 @@ class Controller extends \JControllerBase
 
     protected $_actions_map
         = array(
-            'save'      => 'apply',
+            'save' => 'apply',
             'save2copy' => 'apply',
-            'save2new'  => 'apply',
+            'save2new' => 'apply',
         );
 
     public function execute($action = null)
@@ -38,20 +38,15 @@ class Controller extends \JControllerBase
             /*
              * TODO: set initial filter from config
              */
-            $filter = 'RAW';
+            $filter = null;
             if ($param->isArray()) {
                 $filter = 'array';
             }
 
-            $value = $this->input->get($param->name, null, $filter);
-
-            if ($value === null) {
-                if (!$param->isDefaultValueAvailable()) {
-                    // TODO: improve
-                    throw new \Exception("Need to define $param->name", 500);
-                } else {
-                    $value = $param->getDefaultValue();
-                }
+            if ($param->isDefaultValueAvailable()) {
+                $value = $this->injectArg($param->name, $param->getDefaultValue(), $filter, null);
+            } else {
+                $value = $this->injectRequiredArg($param->name, $filter, null);
             }
 
             $arguments[] = $value;
@@ -64,18 +59,6 @@ class Controller extends \JControllerBase
             throw new \Exception("Method `" . $this->getClassName() . '::'
                 . $action . "` doesn't exist");
         }
-    }
-
-    protected function getArgs($method)
-    {
-        if ($this->methodExists($method)) {
-            $ref    = new \ReflectionMethod($this->getClassName(), $method);
-            $result = $ref->getParameters();
-        } else {
-            $result = array();
-        }
-
-        return $result;
     }
 
     protected function methodExists($method, $in_target = false)
@@ -103,25 +86,62 @@ class Controller extends \JControllerBase
         return get_called_class();
     }
 
+    protected function getArgs($method)
+    {
+        if ($this->methodExists($method)) {
+            $ref = new \ReflectionMethod($this->getClassName(), $method);
+            $result = $ref->getParameters();
+        } else {
+            $result = array();
+        }
+
+        return $result;
+    }
+
+    protected function injectArg($arg, $default = null, $filter = 'RAW', $input = null)
+    {
+        if ($input === null || $input instanceof \JInput) {
+            $value = $this->input->get($arg, $default, $filter);
+        } else {
+            $value = (\JFilterInput::getInstance())->clean($input->get($arg, $default), $filter);
+        }
+
+        return $value;
+    }
+
+    protected function injectRequiredArg($arg, $filter = 'RAW', $input = null)
+    {
+
+        if ($input === null) {
+            $input = $this->input;
+        }
+        if ($input->get($arg) == null) {
+            // TODO: improve
+            throw new \Exception("Injecting undefined $arg", 500);
+        } else {
+            return $this->injectArg($arg, null, $filter, $input);
+        }
+    }
+
     public function index(array $filter = array())
     {
-        $filter = array_filter($filter, function($v){
-            return $v?true:($v===''?false:true);
+        $filter = array_filter($filter, function ($v) {
+            return $v ? true : ($v === '' ? false : true);
         });
         /** @var \JoomplaceX\Model $model */
         $model = $this->getModel();
-        $vars  = array(
-            'columns'    => $model->getColumns('list'),
-            'state'      => $model->getState(),
-            'filter'     => $filter,
-            'items'      => $model->getList(false, false, $filter),
+        $vars = array(
+            'columns' => $model->getColumns('list'),
+            'state' => $model->getState(),
+            'filter' => $filter,
+            'items' => $model->getList(null, null, $filter),
             'pagination' => $model->getPagination(),
         );
         $this->display(lcfirst($this->getClassShortName()), $vars);
     }
 
     /**
-     * @param null $class  Model Class name
+     * @param null $class Model Class name
      * @param null $config Config to pass to constructor of model
      *
      * @return Model
@@ -131,7 +151,7 @@ class Controller extends \JControllerBase
     protected function getModel($class = null, $config = null)
     {
         if (strpos($class, '\\') === false) {
-            $ns                 = explode('\\', $this->getClassName());
+            $ns = explode('\\', $this->getClassName());
             $ns[count($ns) - 2] = 'Model';
             if ($class) {
                 $ns[count($ns) - 1] = $class;
@@ -144,7 +164,7 @@ class Controller extends \JControllerBase
 
     public function display($view, $vars = array(), $layout = 'default')
     {
-        $type   = \JFactory::getDocument()->getType();
+        $type = \JFactory::getDocument()->getType();
         $output = $this->render($view, $type, $vars, $layout);
         switch ($type) {
             case 'json':
@@ -160,14 +180,14 @@ class Controller extends \JControllerBase
 
     public function render($view, $type, $vars = array(), $layout = 'default')
     {
-        if(strpos($view,'.')){
+        if (strpos($view, '.')) {
             list($view, $layout) = explode('.', $view);
         }
         $viewConfig = array(
-            'name'   => $view,
+            'name' => $view,
             'layout' => $layout
         );
-        $ns         = explode('\\', $this->getClassName());
+        $ns = explode('\\', $this->getClassName());
 
         array_pop($ns);
         array_pop($ns);
@@ -212,7 +232,7 @@ class Controller extends \JControllerBase
     {
         $id = array_shift($cid);
         $model = $this->getModel(null, $id);
-        $vars  = array(
+        $vars = array(
             'item' => $model,
         );
         $this->display(lcfirst($this->getClassShortName()) . '.edit', $vars);
@@ -255,7 +275,7 @@ class Controller extends \JControllerBase
     {
         /** @var Model $model */
         $model = $this->getModel();
-        $form  = $model->getForm();
+        $form = $model->getForm();
         // TODO: filter but workaround issue with form filtering out fielded data
 //        $jform = $form->filter($jform);
         /** @var \Joomla\Registry\Registry $data */
@@ -294,8 +314,8 @@ class Controller extends \JControllerBase
 
     public function delete(array $cid)
     {
-        $model         = $this->getModel();
-        $unprocessed   = array_filter(array_map(function ($id) use ($model) {
+        $model = $this->getModel();
+        $unprocessed = array_filter(array_map(function ($id) use ($model) {
             if ($model->delete($id)) {
                 return false;
             } else {
@@ -326,8 +346,8 @@ class Controller extends \JControllerBase
 
     public function publish(array $cid, $state = 1)
     {
-        $model         = $this->getModel();
-        $unprocessed   = array_filter(array_map(function ($id) use (
+        $model = $this->getModel();
+        $unprocessed = array_filter(array_map(function ($id) use (
             $model,
             $state
         ) {
