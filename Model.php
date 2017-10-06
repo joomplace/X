@@ -894,7 +894,7 @@ abstract class Model extends \JTable
                         . ' LIKE ' . $this->_db->quote($value));
                 } else {
                     if (is_array($value)) {
-                        if (array_keys($value) == range(0, count($value))) {
+                        if (array_keys($value) == range(0, count($value) - 1)) {
                             foreach ($value as &$v) {
                                 $v = $this->_db->q($v);
                             }
