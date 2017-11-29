@@ -1,0 +1,6 @@
+{
+    "require": {
+        "illuminate/database": "^5.5",
+        "windwalker/edge": "~3.0"
+    }
+}

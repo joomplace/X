@@ -1,27 +1,42 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: Alexandr
- * Date: 22.06.2017
- * Time: 15:34
+ * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
  */
 
-namespace JoomPlaceX;
+namespace Joomplace\X;
 
+use \Joomla\CMS\MVC\View\HtmlView;
+use Joomplace\X\Helper\Object;
+use \Joomplace\X\Renderer\PlainPHP as JoomlaEngine;
+use \Joomplace\X\Renderer\Edge as EdgeEngine;
 
-class View extends \JViewLegacy
+class View extends HtmlView
 {
-    public function render($tpl = null){
-        \jimport('joomla.filesystem.path');
+    use Object;
+    use EdgeEngine;
 
-        $layout = $this->getLayout()?$this->getLayout():'default';
-        $filetofind = $this->_createFileName('template', array('name' => $layout));
-        $file = \JPath::find($this->_path['template'], $filetofind);
-        if($file){
-            $output = parent::loadTemplate($tpl);
-        }else{
-            $output = \JLayoutHelper::render($layout?$layout:'default',$this,dirname(__FILE__).DIRECTORY_SEPARATOR.'views');
+    public function __construct(array $config = array())
+    {
+        if (isset($config['name'])) {
+            list($config['name'], $config['layout']) = explode(':', $config['name']);
         }
-        return $output;
+        if (!isset($config['base_path'])) {
+            $config['base_path'] = str_replace('//', '/', $this->getExecutedClassDirictory() . '/../');
+        }
+        parent::__construct($config);
+    }
+
+    public function getExecutedClassDirictory()
+    {
+        $reflector = new \ReflectionClass(get_class($this));
+        $fn = $reflector->getFileName();
+        return dirname($fn);
+    }
+
+    public function display($tpl = null)
+    {
+        $result = $this->render($tpl);
+
+        echo $result;
     }
 }
