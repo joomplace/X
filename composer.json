@@ -1,6 +1,8 @@
 {
     "require": {
         "illuminate/database": "^5.5",
-        "windwalker/edge": "~3.0"
+        "windwalker/edge": "~3.0",
+        "illuminate/pagination": "^5.5",
+        "doctrine/dbal": "^2.5"
     }
 }
