@@ -14,14 +14,16 @@ namespace Joomplace\X\Helper;
 
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomplace\X\Model;
+use Joomplace\X\View;
 
 trait Restful
 {
     use Injector;
 
     public function execute($task){
-        $method = strtoupper($_SERVER['REQUEST_METHOD']);
+        $method = strtoupper($this->injectArg('httpxmethod',$_SERVER['REQUEST_METHOD']));
         $methodMap = [
             'store'=>'POST',
             'update'=>'PUT',
@@ -42,13 +44,15 @@ trait Restful
                     $task = array_search($method,$methodMap);
             }
         }else{
-            if($methodMap[$task]!=$method){
+            if(array_key_exists($task,$methodMap) && $methodMap[$task]!=$method){
                 throw new \Exception("Incorrect method. Expecting '$methodMap[$task]', and got '$method'.", 500);
             }
         }
 
-        if(!$this->methodDefined($task) && array_key_exists($task,$methodMap)){
-            $this->taskMap[$task] = 'trait'.ucfirst($task);
+        if(!$this->methodDefined($task)){
+            if(array_key_exists($task,$methodMap) || in_array($task,array('create','edit'))){
+                $this->taskMap[$task] = 'trait'.ucfirst($task);
+            }
         }
 
         parent::execute($task);
@@ -70,8 +74,30 @@ trait Restful
         return $view->render();
     }
 
-    public function traitStore($id = null){
-        return 'That\'s TODO, id:'.$id;
+    public function traitCreate(){
+        /** @var View $view */
+        $view = $this->getView();
+        $view->setLayout('create');
+        return $view->render();
+    }
+
+    public function traitEdit($id){
+        /** @var Model $modelClass */
+        $modelClass = $this->getModel();
+        $view = $this->getView();
+        $view->setLayout('edit');
+        $view->item = $modelClass::findOrFail($id);
+        return $view->render();
+    }
+
+    public function traitStore(){
+        /** @var Model $modelClass */
+        $modelClass = $this->getModel();
+        /** @var Model $item */
+        $item = $modelClass::create($this->getInput()->getArray());
+        $option = $this->injectArg('option');
+        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_CREATED',$item->id));
+        return $this->setRedirect('index.php?option='.$option);
     }
 
     public function traitUpdate($id){
@@ -82,12 +108,21 @@ trait Restful
         $item->fill($this->getInput()->getArray());
         $item->saveOrFail();
         $item = $modelClass::findOrFail($id);
-        $view = $this->getView();
-        $view->item = $item;
-        return $view->render();
+
+        $option = $this->injectArg('option');
+        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_UPDATED',$item->id));
+        return $this->setRedirect('index.php?option='.$option);
     }
 
     public function traitDestroy($id){
-        return 'That\'s TODO, id:'.$id;
+        /** @var Model $modelClass */
+        $modelClass = $this->getModel();
+        /** @var Model $item */
+        $item = $modelClass::findOrFail($id);
+        $item->delete();
+
+        $option = $this->injectArg('option');
+        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_DELETED',$item->id));
+        return $this->setRedirect('index.php?option='.$option);
     }
 }

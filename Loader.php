@@ -17,11 +17,16 @@ class Loader
         \JLoader::registerNamespace(__NAMESPACE__, __DIR__, false, false, 'psr4');
         self::registerPsr4Autoloader();
         if(version_compare(JVERSION,'4.0.0') < 0){
+            class_alias(Legacy\Dispatcher::class,'\\Joomplace\\X\\Dispatcher');
             class_alias(Legacy\Controller::class,'\\Joomplace\\X\\Controller');
             class_alias(Legacy\View::class,'\\Joomplace\\X\\View');
         }
         AbstractPaginator::currentPageResolver(function($var){
-            return Factory::getApplication()->input->get($var);
+            return Factory::getApplication()->input->get($var,
+                Factory::getApplication()->input->get('limitstart',0) /
+                Factory::getApplication()->input->get('limit',Factory::getConfig()->get('list_limit',20))
+                +1
+            );
         });
     }
 
