@@ -10,6 +10,7 @@ Joomla 3.8+, Joomla 4.x
 - PSR4 loader
 - laravel eloquent
 - blade templating
+- base CRUD for blade
 - Joomla API development ready
 - migrations
 - restful ready
