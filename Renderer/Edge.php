@@ -16,30 +16,28 @@ trait Edge
     {
         $fileLoader = new EdgeFileLoader($this->_path['template']);
         static $cache = false;
-        if($cache === false){
-            if(Factory::getConfig()->get('caching',0)){
-                if(Factory::getApplication()->isClient('administrator')){
+        if ($cache === false) {
+            if (Factory::getConfig()->get('caching', 0)) {
+                if (Factory::getApplication()->isClient('administrator')) {
                     $base_path = JPATH_ADMINISTRATOR;
-                }else{
+                } else {
                     $base_path = JPATH_SITE;
                 }
                 $cache = new EdgeFileCache($base_path . '/cache/blade');
-            }else{
+            } else {
                 $cache = null;
             }
         }
-        $renderer = new EdgeEngine($fileLoader,null, $cache);
+        $renderer = new EdgeEngine($fileLoader, null, $cache);
         $compiler = $renderer->getCompiler();
-        $compiler->directive('lang', function ($expression)
-        {
+        $compiler->directive('lang', function ($expression) {
             return "<?= \Joomla\CMS\Language\Text::sprintf$expression; ?>";
         });
 
-        $compiler->directive('jtoolbar', function ($expression)
-        {
-            $call = explode(',',trim($expression, '()'));
-            $call[0] = trim($call[0],' \'');
-            if(!isset($call[1])){
+        $compiler->directive('jtoolbar', function ($expression) {
+            $call = explode(',', trim($expression, '()'));
+            $call[0] = trim($call[0], ' \'');
+            if (!isset($call[1])) {
                 $call[1] = [];
             }
             return "<?php call_user_func_array([\JToolbarHelper::class,'$call[0]'],$call[1]); ?>";
