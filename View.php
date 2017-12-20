@@ -21,7 +21,8 @@ class View extends HtmlView
             list($config['name'], $config['layout']) = explode(':', $config['name']);
         }
         if (!isset($config['base_path'])) {
-            $config['base_path'] = str_replace('//', '/', $this->getExecutedClassDirictory() . '/../');
+            $config['base_path'] = str_replace('//', '/', $this->getExecutedClassDirictory() . '/../'););
+            $config['template_path'] = [__DIR__.'/../layouts',$config['base_path'].'tmpl/'.strtolower($config['name'])];
         }
         parent::__construct($config);
     }
