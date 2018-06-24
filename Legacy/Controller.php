@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
 namespace Joomplace\X\Legacy;
@@ -67,7 +67,7 @@ class Controller extends BaseController
                 $arguments[] = $value;
             }
 
-            echo call_user_func_array(array($this, $task), $arguments);
+            return call_user_func_array(array($this, $task), $arguments);
         } else {
             // TODO: improve
             throw new \Exception("Method `" . $this->getClassName() . '::' . $task . "` doesn't exist");
@@ -90,7 +90,7 @@ class Controller extends BaseController
         }
         $modelClass = $this->_namespace . ucfirst($client) . '\\Model' .
             ($prefix ? '\\' . ucfirst($prefix) : '') . '\\' . ucfirst($name);
-        return $modelClass;
+        return new $modelClass();
     }
 
     protected function createView($name, $prefix = '', $type = '', $config = array())
@@ -110,10 +110,10 @@ class Controller extends BaseController
             $client = 'Admin';
         }
 
-        $viewClass = $this->_namespace . ucfirst($client) . '\\View' .
-            ($prefix ? '\\' . ucfirst($prefix) : '') . ($type == 'html' ? '' : '\\' . ucfirst($type)) .
-            '\\' . ucfirst($name);
-        $view = new $viewClass(['name' => $this->name . ':' . $this->input->get('layout', $this->task, 'cmd')]);
+        $viewClass = $this->_namespace . ucfirst($this->app->getName()) . '\\View' .
+            ($prefix ? '\\' . ucfirst($prefix) : '') . '\\'. ucfirst($name) .
+            '\\' . ucfirst($type);
+        $view = new $viewClass(['name' => $this->getName() . ':' . $this->input->get('layout', $this->task, 'cmd')]);
         return $view;
     }
 

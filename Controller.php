@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
 namespace Joomplace\X;
@@ -90,8 +90,8 @@ class Controller extends BaseController
         $type = $document->getType();
 
         $viewClass = $this->_namespace . ucfirst($this->app->getName()) . '\\View' .
-            ($prefix ? '\\' . ucfirst($prefix) : '') . ($type == 'html' ? '' : '\\' . ucfirst($type)) .
-            '\\' . ucfirst($name);
+            ($prefix ? '\\' . ucfirst($prefix) : '') . '\\'. ucfirst($name) .
+            '\\' . ucfirst($type);
         $view = new $viewClass(['name' => $this->name . ':' . $this->input->get('layout', $this->task, 'cmd')]);
         return $view;
     }

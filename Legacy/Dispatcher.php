@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
 /**

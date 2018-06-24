@@ -22,7 +22,7 @@ trait Injector
     {
         $input = $this->getInput($input);
 
-        if ($input->get($arg) == null) {
+        if ($input->get($arg, null, $filter) == null) {
             // TODO: improve
             throw new \Exception("Injecting undefined $arg", 500);
         } else {
@@ -38,8 +38,10 @@ trait Injector
                 $input = Factory::getApplication()->input;
             }
             $jsonInput = json_decode(file_get_contents('php://input'));
-            foreach ($jsonInput as $k => $v){
-                $input->def($k,$v);
+            if($jsonInput){
+                foreach ($jsonInput as $k => $v){
+                    $input->def($k,$v);
+                }
             }
         }
         return $input;

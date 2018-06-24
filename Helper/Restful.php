@@ -55,14 +55,15 @@ trait Restful
             }
         }
 
-        parent::execute($task);
+        return parent::execute($task);
     }
 
     public function traitIndex(){
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         $view = $this->getView();
-        $view->items = $modelClass::query()->paginate($this->input->get('limit',Factory::getConfig()->get('list_limit',20)));
+        $view->items = $modelClass::accessible()->paginate($this->input->get('limit',Factory::getConfig()->get('list_limit',
+            20)));
         return $view->render();
     }
 
@@ -70,15 +71,27 @@ trait Restful
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         $view = $this->getView();
-        $view->item = $modelClass::findOrFail($id);
-        return $view->render();
+        /** @var Model $item */
+        $item = $modelClass::findOrFail($id);
+        if($modelClass::can('view',$item)){
+            $view->item = $item;
+            return $view->render();
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 
     public function traitCreate(){
         /** @var View $view */
         $view = $this->getView();
         $view->setLayout('create');
-        return $view->render();
+        /** @var Model $modelClass */
+        $modelClass = $this->getModel();
+        if($modelClass::can('create')){
+            return $view->render();
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 
     public function traitEdit($id){
@@ -86,18 +99,30 @@ trait Restful
         $modelClass = $this->getModel();
         $view = $this->getView();
         $view->setLayout('edit');
-        $view->item = $modelClass::findOrFail($id);
-        return $view->render();
+        /** @var Model $item */
+        $item = $modelClass::findOrFail($id);
+        if($modelClass::can('edit',$item)){
+            $view->item = $item;
+            return $view->render();
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 
     public function traitStore(){
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         /** @var Model $item */
-        $item = $modelClass::create($this->getInput()->getArray());
-        $option = $this->injectArg('option');
-        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_CREATED',$item->id));
-        return $this->setRedirect('index.php?option='.$option);
+        if($modelClass::can('create')){
+            /** @var Model $item */
+            $item = $modelClass::create($this->getInput()->getArray());
+            $option = $this->injectArg('option');
+            $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_CREATED',$item->id));
+            $view = $this->getView();
+            return $view->stored($item);
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 
     public function traitUpdate($id){
@@ -105,13 +130,17 @@ trait Restful
         $modelClass = $this->getModel();
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        $item->fill($this->getInput()->getArray());
-        $item->saveOrFail();
-        $item = $modelClass::findOrFail($id);
+        if($modelClass::can('update',$item)){
+            $item->fill($this->getInput()->getArray());
+            $item->saveOrFail();
 
-        $option = $this->injectArg('option');
-        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_UPDATED',$item->id));
-        return $this->setRedirect('index.php?option='.$option);
+            $option = $this->injectArg('option');
+            $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_UPDATED',$item->id));
+            $view = $this->getView();
+            return $view->updated($item);
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 
     public function traitDestroy($id){
@@ -119,10 +148,15 @@ trait Restful
         $modelClass = $this->getModel();
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        $item->delete();
+        if($modelClass::can('delete',$item)){
+            $item->delete();
 
-        $option = $this->injectArg('option');
-        $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_DELETED',$item->id));
-        return $this->setRedirect('index.php?option='.$option);
+            $option = $this->injectArg('option');
+            $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_DELETED',$item->id));
+            $view = $this->getView();
+            return $view->destroyed($item);
+        }else{
+            throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
+        }
     }
 }

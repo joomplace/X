@@ -17,4 +17,22 @@ trait Api
         return new JsonResponse($this->getProperties(), Factory::getApplication()->getMessageQueue(true));
     }
 
+    protected function returnItem($item)
+    {
+        $this->item = $item;
+        return new JsonResponse($this->getProperties(), Factory::getApplication()->getMessageQueue(true));
+    }
+
+    public function stored($item){
+        return $this->returnItem($item);
+    }
+
+    public function updated($item){
+        return $this->returnItem($item);
+    }
+
+    public function destroyed($item){
+        return $this->returnItem($item);
+    }
+
 }

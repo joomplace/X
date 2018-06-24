@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
 namespace Joomplace\X\Legacy;
@@ -21,8 +21,12 @@ class View extends HtmlView
             list($config['name'], $config['layout']) = explode(':', $config['name']);
         }
         if (!isset($config['base_path'])) {
-            $config['base_path'] = str_replace('//', '/', $this->getExecutedClassDirictory() . '/../');
-            $config['template_path'] = [__DIR__.'/../layouts',$config['base_path'].'tmpl/'.strtolower($config['name'])];
+            $base_path = str_replace('//', '/', $this->getExecutedClassDirictory() . '/../../');
+            $config['base_path'] = $base_path;
+            $config['template_path'] = [
+                $base_path.'tmpl/',
+                __DIR__.'/../layouts',$config['base_path'].'tmpl/'.strtolower($config['name']),
+            ];
         }
         parent::__construct($config);
     }

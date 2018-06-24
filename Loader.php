@@ -7,6 +7,8 @@ namespace Joomplace\X;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Events\Dispatcher as EloquentDispatcher;
+use Illuminate\Container\Container;
 use Joomla\CMS\Factory;
 
 class Loader
@@ -41,34 +43,41 @@ class Loader
 
     public static function bootDatabase($config = null)
     {
-        if (!$config) {
-            $config = \Joomla\CMS\Factory::getConfig();
+        static $booted = false;
+        if(!$booted){
+            if (!$config) {
+                $config = \Joomla\CMS\Factory::getConfig();
+            }
+
+            $capsule = new Capsule;
+
+            $dbtype = null;
+            switch ($config->get('dbtype')) {
+                default:
+                    $dbtype = $config->get('dbtype');
+                case 'mysqli':
+                    $dbtype = 'mysql';
+                    break;
+            }
+
+            $capsule->addConnection(array(
+                'driver' => $dbtype,
+                'host' => $config->get('host'),
+                'database' => $config->get('db'),
+                'username' => $config->get('user'),
+                'password' => $config->get('password'),
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => $config->get('dbprefix')
+            ));
+            $dispatcher = new EloquentDispatcher(new Container);
+
+            $capsule->setEventDispatcher($dispatcher);
+
+            $capsule->bootEloquent();
+            $capsule->setAsGlobal();
+            $booted = true;
         }
-
-        $capsule = new Capsule;
-
-        $dbtype = null;
-        switch ($config->get('dbtype')) {
-            default:
-                $dbtype = $config->get('dbtype');
-            case 'mysqli':
-                $dbtype = 'mysql';
-                break;
-        }
-
-        $capsule->addConnection(array(
-            'driver' => $dbtype,
-            'host' => $config->get('host'),
-            'database' => $config->get('db'),
-            'username' => $config->get('user'),
-            'password' => $config->get('password'),
-            'charset' => 'utf8',
-            'collation' => 'utf8_unicode_ci',
-            'prefix' => $config->get('dbprefix')
-        ));
-
-        $capsule->bootEloquent();
-        $capsule->setAsGlobal();
     }
 
     public static function registerPsr4Autoloader(){
@@ -253,7 +262,7 @@ class Loader
                 case 'Plugin':
                     // plugins/type
                     $folds[] = JPATH_PLUGINS;
-                    $folds[] = ucfirst(array_shift($classPathParts));
+                    $folds[] = lcfirst(array_shift($classPathParts));
                     $ext = array_shift($classPathParts);
                     break;
                 default:

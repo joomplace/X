@@ -1,15 +1,19 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
 namespace Joomplace\X;
 
 use Illuminate\Database\Eloquent\Model as BaseModel;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomplace\X\Helper\ACL\Dummy;
 
 class Model extends BaseModel
 {
+    use Dummy;
+
     public $timestamps = false;
 
     protected $defaults = [];
@@ -29,6 +33,10 @@ class Model extends BaseModel
         } else {
             return parent::getTable();
         }
+    }
+
+    public function getName(){
+        return (new \ReflectionClass($this))->getShortName();
     }
 
     public function getDefaults(){
