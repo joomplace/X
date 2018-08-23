@@ -110,7 +110,7 @@ class Controller extends BaseController
             $client = 'Admin';
         }
 
-        $viewClass = $this->_namespace . ucfirst($this->app->getName()) . '\\View' .
+        $viewClass = $this->_namespace . $client . '\\View' .
             ($prefix ? '\\' . ucfirst($prefix) : '') . '\\'. ucfirst($name) .
             '\\' . ucfirst($type);
         $view = new $viewClass(['name' => $this->getName() . ':' . $this->input->get('layout', $this->task, 'cmd')]);

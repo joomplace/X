@@ -8,6 +8,7 @@ namespace Joomplace\X;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\Input\Input;
 use Joomplace\X\Helper\ACL\Dummy;
 
 class Model extends BaseModel
@@ -84,5 +85,17 @@ class Model extends BaseModel
 
     public function getLabelFor($column){
         return $this->getLabels()[$column];
+    }
+
+    public static function getFillFromInput(Input $input){
+        $model = new static();
+        $input = $input->getArray();
+        $fill = [];
+        foreach ($input as $key => $value){
+            if($model->isFillable($key)){
+                $fill[$key] = $input[$key];
+            }
+        }
+        return $fill;
     }
 }

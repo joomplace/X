@@ -31,6 +31,11 @@ trait Core
         if(!$user){
             $user = Factory::getUser();
         }
+
+        if(!is_object($context) && class_exists($context)){
+            $context = new $context;
+        }
+
         if($action){
             return $user->authorise('core.'.$action, static::getAssetName($context));
         }

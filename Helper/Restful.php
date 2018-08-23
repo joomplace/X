@@ -113,9 +113,9 @@ trait Restful
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         /** @var Model $item */
-        if($modelClass::can('create')){
+        if($modelClass::can('create',new $modelClass)){
             /** @var Model $item */
-            $item = $modelClass::create($this->getInput()->getArray());
+            $item = $modelClass::create($modelClass::getFillFromInput($this->getInput()));
             $option = $this->injectArg('option');
             $this->app->enqueueMessage(Text::sprintf(strtoupper($option).'_CREATED',$item->id));
             $view = $this->getView();
@@ -131,7 +131,7 @@ trait Restful
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
         if($modelClass::can('update',$item)){
-            $item->fill($this->getInput()->getArray());
+            $item->fill($modelClass::getFillFromInput($this->getInput()));
             $item->saveOrFail();
 
             $option = $this->injectArg('option');

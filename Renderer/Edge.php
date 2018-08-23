@@ -6,6 +6,7 @@
 namespace Joomplace\X\Renderer;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
 use Windwalker\Edge\Cache\EdgeFileCache;
 use Windwalker\Edge\Edge as EdgeEngine;
 use Windwalker\Edge\Loader\EdgeFileLoader;
@@ -69,4 +70,17 @@ trait Edge
         return $renderer->render($tpl ? ($this->getLayout() . '_' . $tpl) : $this->getLayout(), $this->getProperties());
     }
 
+    public function stored($item){
+        Factory::getApplication()->redirect(trim(implode('?',array_filter([
+            \Joomla\CMS\Uri\Uri::getInstance()->getPath(),
+            \Joomla\CMS\Uri\Uri::getInstance()->getQuery()
+        ])),'/'));
+    }
+
+    public function destroyed($item){
+        Factory::getApplication()->redirect(trim(implode('?',array_filter([
+            \Joomla\CMS\Uri\Uri::getInstance()->getPath(),
+            \Joomla\CMS\Uri\Uri::getInstance()->getQuery()
+        ])),'/'));
+    }
 }

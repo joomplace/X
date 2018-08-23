@@ -20,17 +20,19 @@ trait Base
     public function getParentAssetName(){
         if(!$this->context){
             list($vendor, $ext, $name) = explode('\\',self::class);
-            $this->context = implode('.',[strtolower(substr($ext,0,3).'_'.$name),$this->getTable()]);
+            $this->context = implode('.',[strtolower(substr($ext,0,3).'_'.$name)]);
         }
         return $this->context;
     }
 
-    public static function getAssetName($context = null){
+    public static function getAssetName($context = null, $pattern = false){
         if(!is_subclass_of($context, Model::class,false)){
             $context = new static();
-            return $context->getParentAssetName();
+            if(!$pattern){
+                return $context->getParentAssetName();
+            }
         }
-        return implode('.',[$context->getParentAssetName(),$context->getKey()]);
+        return implode('.',[$context->getParentAssetName(),$context->getTable(),$pattern?'%':$context->getKey()]);
     }
 
     public abstract static function can($action, $context = null, \Joomla\CMS\User\User $user = null);
