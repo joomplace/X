@@ -24,17 +24,28 @@ Templating:
 - Edge
 
 ### Maintained be JoomPlace
-Joomla PSR-4 Autoloader
+[Joomla PSR-4 Autoloader](https://github.com/joomplace/X/blob/laravel-it/Loader.php)
+
+[Component Bootstraper](https://github.com/joomplace/X/blob/laravel-it/ComponentStarter.php)
+
+[Dispatcher](https://github.com/joomplace/X/blob/laravel-it/Dispatcher.php) with [Migrations](https://github.com/joomplace/X/blob/laravel-it/Helper/Migrations.php)
 
 Base MVC:
-- Model
-- View
-- Controller
+- [Model](https://github.com/joomplace/X/blob/laravel-it/Model.php)
+- [View](https://github.com/joomplace/X/blob/laravel-it/View.php)
+- [Controller](https://github.com/joomplace/X/blob/laravel-it/Controller.php)
+- [Controller for JSON API](https://github.com/joomplace/X/blob/laravel-it/ControllerAPI.php)
 
 Controller additions:
-- Traits for RESTful API
-- Traits for Input injection
+- Trait for [RESTful](https://github.com/joomplace/X/blob/laravel-it/Helper/Restful.php)
+- Trait for [Input injection](https://github.com/joomplace/X/blob/laravel-it/Helper/Injector.php)
 
 View additions:
-- Trait for Blade render
-- Trait for JSON [API] render
+- Trait for Blade [renderer](https://github.com/joomplace/X/blob/laravel-it/Renderer/Edge.php)
+- Trait for JSON [renderer](https://github.com/joomplace/X/blob/laravel-it/Renderer/Api.php)
+- Trait for PlainPHP [renderer](https://github.com/joomplace/X/blob/laravel-it/Renderer/PlainPHP.php)
+
+Model additions:
+- Basic ACL [trait](https://github.com/joomplace/X/blob/laravel-it/Helper/ACL/Base.php)
+- Dummy ACL [trait](https://github.com/joomplace/X/blob/laravel-it/Helper/ACL/Dummy.php)
+- *IN DEVELOPMENT* Core ACL trait
