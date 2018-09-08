@@ -1,62 +1,54 @@
 <?php
+/**
+ * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ */
 
-namespace JoomPlaceX;
+/**
+ * Created by PhpStorm.
+ * User: Alexandr
+ * Date: 18.12.2017
+ * Time: 17:41
+ */
 
-use JInput;
-use Joomla\Application\AbstractApplication;
+namespace Joomplace\X;
 
-class Dispatcher extends \JControllerBase
+
+class Dispatcher extends \Joomla\CMS\Dispatcher\Dispatcher
 {
-    protected $default_view = 'dashboard';
-    protected $namespace = null;
+    use Migrations;
 
-    public function __construct(
-        JInput $input = null,
-        AbstractApplication $app = null
-    ) {
-        parent::__construct($input, $app);
-        if(!$this->namespace){
-            $this->namespace = substr(get_class($this), 0, strrpos(get_class($this), '\\'));
-        }
-    }
-
-
-    public function execute($task = null)
+    public function dispatch()
     {
-        $this->dispatch($task);
+        $_config = new Joomplace\Component\Profiler\Site\Config();
+        $this->input->def('controller', $_config->defaultController);
+        $this->input->def('task', $_config->defaultView);
+        parent::dispatch();
     }
 
-    public function dispatch($task = null)
+    public function getController(string $name, string $client = '', array $config = array()): \Joomla\CMS\MVC\Controller\BaseController
     {
-        $this->input->def('view',$this->default_view);
+        // Set up the namespace
+        $namespace = rtrim($this->namespace, '\\') . '\\';
 
-        if(\JFactory::getApplication()->isClient('administrator')){
-            $this->addMustHaveButtons();
+        // Set up the client
+        $client = $client ?: ucfirst($this->app->getName());
+
+        $controllerClass = $namespace . $client . '\\Controller'.
+            (($format = $this->app->input->get('format','web'))=='web'?'':'\\'.$format).
+            '\\' .ucfirst($name);
+
+        if (!class_exists($controllerClass))
+        {
+            $controllerClass = $namespace . $client . '\\Controller'.'\\' .ucfirst($name);
+            if (!class_exists($controllerClass))
+            {
+                throw new \InvalidArgumentException(\JText::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER_CLASS', $controllerClass));
+            }
         }
 
-        if(strpos($task,'.')){
-            list($controllerName, $action) = explode('.', $task);
-        }else{
-            $controllerName = $this->input->get('view');
-            $action = trim($task, '.');
-        }
-        $controllerName = $this->namespace.'\\Controller\\'.ucfirst($controllerName);
-        $controller = new $controllerName;
-        $controller->execute($action);
+        $config['namespace'] = $namespace;
+
+        return new $controllerClass($config, new \Joomla\CMS\MVC\Factory\MVCFactory($namespace, $this->app), $this->app, $this->input);
     }
 
-    protected function addMustHaveButtons()
-    {
-        if(\JText::_('BRAND_LOGO')){
-            \JToolbarHelper::custom('dashboard.brand','hide','version',\JText::_('BRAND_LOGO'), false);
-            \JFactory::getDocument()->addStyleDeclaration('#toolbar #toolbar-hide{float:right;} #toolbar #toolbar-hide .btn > * {max-height: 2.1em;} #toolbar #toolbar-hide .icon-hide{display:none;}');
-//            \JFactory::getDocument()->addScriptDeclaration('jQuery(document).ready(function($){$("#toolbar #toolbar-hide .btn").on("click",function(e){e.preventDefault();return false;})});');
-        }
-
-        $xml = simplexml_load_file(JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.$this->input->get('option').DIRECTORY_SEPARATOR.str_replace('com_','',$this->input->get('option')).'.xml');
-        \JToolbarHelper::custom('dashboard.version','info','version',(string)$xml->version, false);
-        \JFactory::getDocument()->addStyleDeclaration('#toolbar #toolbar-info{float:right;}');
-
-        \JToolbarHelper::preferences($this->input->get('option'));
-    }
 }

@@ -1,9 +1,9 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
-namespace Joomplace\X;
+namespace Joomplace\X\Legacy;
 
 use \Joomla\CMS\MVC\View\HtmlView;
 use Joomplace\X\Helper\Object;
