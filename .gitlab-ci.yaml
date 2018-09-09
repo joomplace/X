@@ -10,7 +10,7 @@ release:
     - docker
     - gce
   script:
-  - apt-get install zip
+  - sudo apt-get install zip
   - mkdir -p library && mkdir -p packages
   - composer install
   - ls -la
