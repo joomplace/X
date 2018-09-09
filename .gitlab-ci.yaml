@@ -13,7 +13,6 @@ release:
   - sudo apt-get update && sudo apt-get install -y zip
   - mkdir -p library && mkdir -p packages
   - composer install
-  - ls -la
   - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
     |
     while read in;
@@ -31,6 +30,7 @@ release:
     cp -rf $folder $rootdir/library/;
     done
   - cp -f ./manifest.xml ./library/
+  - ls -la ./library/
   - grep -E -o '<file.*>(.*?)</file>' ./package.xml
     |
     while read in;
