@@ -18,7 +18,7 @@ release:
     while read in;
     do
     rootdir=`pwd`;
-    file=$(echo $in | cut -f1 -d | cut -f2 -d\< | cut -f2 -d\>);
+    file=$(echo $in | sed -r "s/.*?>(.*?)<\/.*?/\1/g");
     cp -f $file $rootdir/library/;
     done;
   - grep -E -o '<folder>(.*?)</folder>' ./manifest.xml
@@ -26,7 +26,7 @@ release:
     while read in;
     do
     rootdir=`pwd`;
-    folder=$(echo $in | cut -f1 -d | cut -f2 -d\< | cut -f2 -d\>);
+    folder=$(echo $in | sed -r "s/.*?>(.*?)<\/.*?/\1/g");
     cp -rf $folder $rootdir/library/;
     done
   - cp -f ./manifest.xml ./library/
