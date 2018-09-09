@@ -10,7 +10,7 @@ release:
     - docker
     - gce
   script:
-  - sudo apt-get update && sudo apt-get install -y zip
+  - sudo apt-get update && sudo apt-get install -y zip wget
   - mkdir -p library && mkdir -p packages
   - composer install
   - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
