@@ -1,11 +1,11 @@
 stages:
 - build
 
-release:regular:
+release:
 #  only:
 #  - tags
   stage: build
-  image: composer/composer:1.1
+  image: edbizarro/gitlab-ci-pipeline-php:7.0-alpine-lts
   tags:
     - docker
     - gce
