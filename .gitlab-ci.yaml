@@ -30,7 +30,6 @@ release:
     cp -rf $folder $rootdir/library/;
     done
   - cp -f ./manifest.xml ./library/
-  - ls -la ./library/
   - grep -E -o '<file.*>(.*?)</file>' ./package.xml
     |
     while read in;
@@ -45,7 +44,7 @@ release:
     cd $rootdir;
     else
     cd $rootdir/$dest;
-    zip -r $rootdir/packages/$dest.zip ./$dest/*;
+    zip -r $rootdir/packages/$dest.zip $rootdir/$dest/*;
     cd $rootdir/;
     fi;
     done
