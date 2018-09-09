@@ -6,7 +6,7 @@ release:regular:
 #  - tags
   stage: build
   image: composer/composer:1.1
-  tags: [docker]
+  tags: [docker,gce]
   script:
   - mkdir -p library
   - mkdir -p packages
