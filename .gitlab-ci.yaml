@@ -36,16 +36,16 @@ release:
     while read in;
     do
     rootdir=`pwd`;
-    source=$(echo $in | cut -f1 -d^);
-    dest=$(echo $in | cut -f2 -d^);
+    source=$(echo $in | sed -r "s/src=\"(.*?)\"/\1/g");
+    dest=$(echo $in | sed -r "s/.*?>(.*?).zip<\/.*?/\1/g"^);
     if [[ $source =~ ^https? ]];
     then
     cd $rootdir/packages/;
     wget --output-document=$dest.zip $source;
     cd $rootdir;
     else
-    cd $rootdir/$source;
-    zip -r $rootdir/packages/$dest.zip ./*;
+    cd $rootdir/$dest;
+    zip -r $rootdir/packages/$dest.zip ./$dest/*;
     cd $rootdir/;
     fi;
     done
