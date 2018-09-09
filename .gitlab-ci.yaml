@@ -13,6 +13,7 @@ release:
   - mkdir -p library
   - mkdir -p packages
   - composer install
+  - ls -la
   - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
     |
     while read in;
