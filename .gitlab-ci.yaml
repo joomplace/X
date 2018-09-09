@@ -5,12 +5,12 @@ release:
 #  only:
 #  - tags
   stage: build
-  image: edbizarro/gitlab-ci-pipeline-php:7.0
+  image: edbizarro/gitlab-ci-pipeline-php:7.0-alpine-lts
   tags:
     - docker
     - gce
   script:
-  - sudo apt-get install -y zip
+  - sudo apk add zip -y
   - mkdir -p library && mkdir -p packages
   - composer install
   - ls -la
