@@ -1,0 +1,28 @@
+<extension type="library" version="3.x" method="upgrade">
+    <libraryname>JoomPlaceX</libraryname>
+    <name>JoomPlaceX</name>
+    <author>Alexandr Kosarev</author>
+    <creationDate>September 2017</creationDate>
+    <copyright>(C) 2018 Joomplace. All rights reserved.</copyright>
+    <license>GPL3</license>
+    <authorEmail>kosarev@joomplace.com</authorEmail>
+    <authorUrl>https://www.joomplace.com</authorUrl>
+    <version>0.10.1</version>
+    <files>
+        <folder>Helper</folder>
+        <folder>layouts</folder>
+        <folder>Legacy</folder>
+        <folder>Renderer</folder>
+        <folder>vendor</folder>
+        <folder>Wireframe</folder>
+        <filename>ComponentStarter.php</filename>
+        <filename>Controller.php</filename>
+        <filename>ControllerAPI.php</filename>
+        <filename>Dispatcher.php</filename>
+        <filename>Loader.php</filename>
+        <filename>Model.php</filename>
+        <filename>View.php</filename>
+        <filename>README.md</filename>
+        <filename>composer-lock.json</filename>
+    </files>
+</extension>

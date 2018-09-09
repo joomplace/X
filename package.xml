@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<extension type="package" version="3.x" method="upgrade">
+    <name>JoomPlaceX</name>
+    <author>Joomplace Team</author>
+    <creationDate>September 2018</creationDate>
+    <packagename>html5flippingbook_pro</packagename>
+    <authorEmail>support@joomplace.com</authorEmail>
+    <authorUrl>www.joomplace.com</authorUrl>
+    <copyright>Copyright (C) 2018 JoomPlace, www.joomplace.com. All rights reserved.</copyright>
+    <license>GNU/GPL http://www.gnu.org/copyleft/gpl.html</license>
+    <version>0.10.1</version>
+    <files folder="packages">
+        <file type="library" id="library">library.zip</file>
+        <file type="plugin" src="https://github.com/joomplace/Xautoloader/blob/master/joomplaceXautoloader.php" id="autoloader" group="system">plg_autoloader.zip</file>
+    </files>
+</extension>

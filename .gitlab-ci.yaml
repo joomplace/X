@@ -1,0 +1,54 @@
+stages:
+- build
+
+release:regular:
+#  only:
+#  - tags
+  stage: build
+  image: composer/composer:1.1
+  tags: [docker]
+  script:
+  - mkdir -p library
+  - mkdir -p packages
+  - composer install
+  - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    file=$(echo $in | cut -f1 -d^);
+    cp -f $file $rootdir/library/;
+    done;
+  - grep -E -o '<folder>(.*?)</folder>' ./manifest.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    folder=$(echo $in | cut -f1 -d^);
+    cp -rf $folder $rootdir/library/;
+    done
+  - cp -f ./manifest.xml ./library/
+  - grep -E -o '<file.*>(.*?)</file>' ./package.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    source=$(echo $in | cut -f1 -d^);
+    dest=$(echo $in | cut -f2 -d^);
+    if [[ $source =~ ^https? ]];
+    then
+    cd $rootdir/packages/;
+    wget --output-document=$dest.zip $source;
+    cd $rootdir;
+    else
+    cd $rootdir/$source;
+    zip -r $rootdir/packages/$dest.zip ./*;
+    cd $rootdir/;
+    fi;
+    done
+  artifacts:
+    paths:
+    - packages/
+    - package.xml
+    name: "pkg_JoomPlaceX_${CI_BUILD_REF_NAME}"
+    when: on_success
