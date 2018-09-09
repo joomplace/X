@@ -1,0 +1,56 @@
+stages:
+- build
+
+release:
+  only:
+  - tags
+  stage: build
+  image: edbizarro/gitlab-ci-pipeline-php:7.0
+  tags:
+    - docker
+    - gce
+  script:
+  - sudo apt-get update && sudo apt-get install -y zip wget
+  - mkdir -p library && mkdir -p packages
+  - composer install
+  - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    file=$(echo $in | sed -r "s/.*?>(.*?)<\/.*?/\1/g");
+    cp -f $file $rootdir/library/;
+    done;
+  - grep -E -o '<folder>(.*?)</folder>' ./manifest.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    folder=$(echo $in | sed -r "s/.*?>(.*?)<\/.*?/\1/g");
+    cp -rf $folder $rootdir/library/;
+    done
+  - cp -f ./manifest.xml ./library/
+  - grep -E -o '<file.*>(.*?)</file>' ./package.xml
+    |
+    while read in;
+    do
+    rootdir=`pwd`;
+    source=$(echo $in | sed -r "s/.*src=\"([^\"]*)\".*/\1/g");
+    dest=$(echo $in | sed -r "s/.*>([^\.]*).zip<\/.*/\1/g");
+    if [[ $source =~ ^https? ]];
+    then
+    cd $rootdir/packages/;
+    wget --output-document=$dest.zip $source;
+    cd $rootdir;
+    else
+    cd $rootdir/$dest;
+    zip -r $rootdir/packages/$dest.zip ./*;
+    cd $rootdir/;
+    fi;
+    done
+  artifacts:
+    paths:
+    - packages/
+    - package.xml
+    name: "pkg_JoomPlaceX_${CI_BUILD_REF_NAME}"
+    when: on_success
