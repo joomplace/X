@@ -2,8 +2,8 @@ stages:
 - build
 
 release:
-#  only:
-#  - tags
+  only:
+  - tags
   stage: build
   image: edbizarro/gitlab-ci-pipeline-php:7.0
   tags:
