@@ -23,6 +23,6 @@
         <filename>Model.php</filename>
         <filename>View.php</filename>
         <filename>README.md</filename>
-        <filename>composer-lock.json</filename>
+        <filename>composer.lock</filename>
     </files>
 </extension>
