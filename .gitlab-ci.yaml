@@ -10,7 +10,7 @@ release:
     - docker
     - gce
   script:
-  - apk add zip
+  - sudo apk add zip
   - mkdir -p library && mkdir -p packages
   - composer install
   - ls -la
