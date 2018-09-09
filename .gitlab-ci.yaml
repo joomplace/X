@@ -37,7 +37,7 @@ release:
     do
     rootdir=`pwd`;
     source=$(echo $in | sed -r "s/.*src=\"([^\"]*)\".*/\1/g");
-    dest=$(echo $in | sed -r "s/.*?>(.*?).zip<\/.*?/\1/g"^);
+    dest=$(echo $in | sed -r "s/.*>([^\.]*).zip<\/.*/\1/g");
     if [[ $source =~ ^https? ]];
     then
     cd $rootdir/packages/;
