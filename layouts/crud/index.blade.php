@@ -82,7 +82,7 @@ if($columns==null){
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="3">
+            <td colspan="{{count($columns)+1}}">
                 <?php $jpagination = new Pagination($items->total(),($items->currentPage()-1)*$items->perPage(),
                     $items->perPage()); ?>
                 <form method="get" name="adminForm" id="adminForm" action="<?= Joomla\CMS\Router\Route::_('index.php') ?>">
