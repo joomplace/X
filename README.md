@@ -10,8 +10,10 @@ That's not a yet another framework, because it simply do not FRAME you work, it 
 Either download or clone the repo to the `/libraries/JoomPlaceX` and install [autoloader plugin](https://github.com/joomplace/Xautoloader).
 
 Navigate to the `/libraries/JoomPlaceX` folder and do the `composer install` [`composer update`]
-### Package installation [comming soon]
-Use the link to our CI packaged version which includes both library (ready to use) and autoloader plugin
+### Package installation
+Use [the link to our CI packaged version](https://github.com/joomplace/X/releases/download/0.10.3/package.zip) which includes both library (ready to use) and autoloader plugin.
+
+You still will need to enable autoloader plugin manually.
 
 ## What's in it
 ### 3rd Party [use original documentation of those]
