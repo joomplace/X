@@ -1,9 +1,29 @@
 stages:
 - build
 
+#before_script:
+#- if git rev-parse "0.10.1^{tag}" >/dev/null 2>&1
+#  then
+#  echo "Found 0.10.1";
+#  else
+#  echo "0.10.1 not found";
+#  fi;
+#- if git rev-parse "0.10.2^{tag}" >/dev/null 2>&1
+#  then
+#  echo "Found 0.10.2";
+#  else
+#  echo "0.10.2 not found";
+#  fi;
+#- if git rev-parse "0.10.3^{tag}" >/dev/null 2>&1
+#  then
+#  echo "Found 0.10.3";
+#  else
+#  echo "0.10.3 not found";
+#  fi;
+
 release:
-  only:
-  - tags
+#  only:
+#  - tags
   stage: build
   image: edbizarro/gitlab-ci-pipeline-php:7.0
   tags:
@@ -44,7 +64,7 @@ release:
     cd $rootdir;
     else
     cd $rootdir/$dest;
-    zip -r $rootdir/packages/$dest.zip ./*;
+    zip -r $rootdir/packages/$dest.zip .;
     cd $rootdir/;
     fi;
     done

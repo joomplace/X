@@ -3,5 +3,8 @@
 $method = 'post';
 @endphp
 @section('toolbar')
-    @jtoolbar('save',['store'])
+    @php
+        $view = $this->getGlobal('view');
+    @endphp
+    @jtoolbar('save',[$view.'.store'])
 @endsection
