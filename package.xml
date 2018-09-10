@@ -8,7 +8,7 @@
     <authorUrl>www.joomplace.com</authorUrl>
     <copyright>Copyright (C) 2018 JoomPlace, www.joomplace.com. All rights reserved.</copyright>
     <license>GNU/GPL http://www.gnu.org/copyleft/gpl.html</license>
-    <version>0.10.1</version>
+    <version>0.10.3</version>
     <files folder="packages">
         <file type="library" id="library">library.zip</file>
         <file type="plugin" src="https://github.com/joomplace/Xautoloader/archive/1.0.1.zip" id="autoloader" group="system">plg_autoloader.zip</file>
