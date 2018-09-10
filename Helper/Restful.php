@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. JoomPlace, all rights reserved
  */
 
 /**
@@ -62,6 +62,7 @@ trait Restful
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         $view = $this->getView();
+        $view->modelClass = $modelClass;
         $view->items = $modelClass::accessible()->paginate($this->input->get('limit',Factory::getConfig()->get('list_limit',
             20)));
         return $view->render();
@@ -73,7 +74,8 @@ trait Restful
         $view = $this->getView();
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        if($modelClass::can('view',$item)){
+        if ($modelClass::can($this->getName() . '.view', $item)) {
+            $view->modelClass = $modelClass;
             $view->item = $item;
             return $view->render();
         }else{
@@ -87,7 +89,8 @@ trait Restful
         $view->setLayout('create');
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
-        if($modelClass::can('create')){
+        if ($modelClass::can($this->getName() . '.create')) {
+            $view->item = new $modelClass;
             return $view->render();
         }else{
             throw new \Exception(Text::_('JOOMPLACE_X_NOT_ALLOWED'), 403);
@@ -101,7 +104,7 @@ trait Restful
         $view->setLayout('edit');
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        if($modelClass::can('edit',$item)){
+        if ($modelClass::can($this->getName() . '.edit', $item)) {
             $view->item = $item;
             return $view->render();
         }else{
@@ -113,7 +116,7 @@ trait Restful
         /** @var Model $modelClass */
         $modelClass = $this->getModel();
         /** @var Model $item */
-        if($modelClass::can('create',new $modelClass)){
+        if ($modelClass::can($this->getName() . '.create', new $modelClass)) {
             /** @var Model $item */
             $item = $modelClass::create($modelClass::getFillFromInput($this->getInput()));
             $option = $this->injectArg('option');
@@ -130,7 +133,7 @@ trait Restful
         $modelClass = $this->getModel();
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        if($modelClass::can('update',$item)){
+        if ($modelClass::can($this->getName() . '.update', $item)) {
             $item->fill($modelClass::getFillFromInput($this->getInput()));
             $item->saveOrFail();
 
@@ -148,7 +151,7 @@ trait Restful
         $modelClass = $this->getModel();
         /** @var Model $item */
         $item = $modelClass::findOrFail($id);
-        if($modelClass::can('delete',$item)){
+        if ($modelClass::can($this->getName() . '.delete', $item)) {
             $item->delete();
 
             $option = $this->injectArg('option');

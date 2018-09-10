@@ -3,5 +3,8 @@
 $method = 'put';
 @endphp
 @section('toolbar')
-    @jtoolbar('save',['update'])
+    @php
+        $view = $this->getGlobal('view');
+    @endphp
+    @jtoolbar('save',[$view.'.update'])
 @endsection

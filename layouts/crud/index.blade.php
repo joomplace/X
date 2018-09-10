@@ -4,14 +4,15 @@ use Joomla\CMS\Pagination\Pagination;
 
 Joomla\CMS\HTML\HTMLHelper::_('behavior.core');
 
-$modelClass = ($items->getIterator()->current()->getMorphClass());
+$option = \Joomla\CMS\Factory::getApplication()->input->get('option');
+$model = new $modelClass;
 if($columns==null){
-    $columns = $items->getIterator()->current()->getFillable();
+    $columns = $model->getFillable();
 }
 ?>
-@can('create',$modelClass)
+@can($this->getGlobal('view').'.create',$modelClass)
     @php
-        JToolbarHelper::addNew('create');
+        JToolbarHelper::addNew($this->getGlobal('view').'.create');
     @endphp
 @endcan
 @section('content-table')
@@ -23,7 +24,7 @@ if($columns==null){
             </th>
             <?php foreach($columns as $column){ ?>
                 <th>
-                    {{$items->getIterator()->current()->getLabelFor($column)}}
+                    {{$model->getLabelFor($column)}}
                 </th>
             <?php } ?>
             <th>
@@ -44,9 +45,9 @@ if($columns==null){
             <?php } ?>
             <td>
                 <a class="btn btn-small"
-                @if($item::can('view',$item))
-                   href="{{\Joomla\CMS\Router\Route::_('index.php?option=com_xexamples&id='.$item->id,false)}}"
-                @else
+                   @if($item::can($this->getGlobal('view').'.view',$item))
+                   href="{{\Joomla\CMS\Router\Route::_('index.php?option='.$option.'&view='.$this->getGlobal('view').'&id='.$item->id,false)}}"
+                   @else
                    href="javascript:void(0);"
                    disabled="true"
                 @endif
@@ -54,18 +55,20 @@ if($columns==null){
                     show
                 </a>
                 <a class="btn btn-small"
-                @if($item::can('view',$item))
-                    href="{{\Joomla\CMS\Router\Route::_('index.php?option=com_xexamples&task=edit&id='.$item->id,false)}}"
-                @else
+                   @if($item::can($this->getGlobal('view').'.view',$item))
+                   href="{{\Joomla\CMS\Router\Route::_('index.php?option='.$option.'&task='.$this->getGlobal('view')
+                    .'.edit&id='.$item->id, false)}}"
+                   @else
                     href="javascript:void(0);"
-                    disabled="true"
+                   disabled="true"
                 @endif
                 >
                     edit
                 </a>
                 <form method="delete" style="display: inline;margin: 0px;">
-                    @if($item::can('view',$item))
-                        <input name="option" value="com_xexamples" type="hidden">
+                    @if($item::can($this->getGlobal('view').'.delete',$item))
+                        <input name="option" value="{{$option}}" type="hidden">
+                        <input name="view" value="{{$this->getGlobal('view')}}" type="hidden">
                         <input name="id" value="{{$item->id}}" type="hidden">
                         <input name="httpxmethod" value="delete" type="hidden">
                         <button type="submit" class="btn btn-small">delete</button>
@@ -83,7 +86,7 @@ if($columns==null){
                 <?php $jpagination = new Pagination($items->total(),($items->currentPage()-1)*$items->perPage(),
                     $items->perPage()); ?>
                 <form method="get" name="adminForm" id="adminForm" action="<?= Joomla\CMS\Router\Route::_('index.php') ?>">
-                    <input name="option" value="com_xexamples" type="hidden">
+                    <input name="option" value="{{$option}}" type="hidden">
                     <input name="task" value="" type="hidden">
                     <?= $jpagination->getListFooter() ?>
                 </form>

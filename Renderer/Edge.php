@@ -1,12 +1,11 @@
 <?php
 /**
- * Copyright (c) 2017. Alexandr Kosarev, @kosarev.by
+ * Copyright (c) 2018. JoomPlace, all rights reserved
  */
 
 namespace Joomplace\X\Renderer;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Uri\Uri;
 use Windwalker\Edge\Cache\EdgeFileCache;
 use Windwalker\Edge\Edge as EdgeEngine;
 use Windwalker\Edge\Loader\EdgeFileLoader;
@@ -30,6 +29,7 @@ trait Edge
             }
         }
         $renderer = new EdgeEngine($fileLoader,null, $cache);
+        $renderer->setGlobals(['view' => $this->getName()]);
         $compiler = $renderer->getCompiler();
         $compiler->directive('lang', function ($expression)
         {
@@ -61,26 +61,36 @@ trait Edge
         $compiler->directive('jtoolbar', function ($expression)
         {
             $call = explode(',',trim($expression, '()'));
-            $call[0] = trim($call[0],' \'');
             if(!isset($call[1])){
                 $call[1] = [];
             }
-            return "<?php call_user_func_array([\JToolbarHelper::class,'$call[0]'],$call[1]); ?>";
+            return "<?php call_user_func_array([\JToolbarHelper::class,$call[0]],$call[1]); ?>";
         });
         return $renderer->render($tpl ? ($this->getLayout() . '_' . $tpl) : $this->getLayout(), $this->getProperties());
     }
 
     public function stored($item){
-        Factory::getApplication()->redirect(trim(implode('?',array_filter([
-            \Joomla\CMS\Uri\Uri::getInstance()->getPath(),
-            \Joomla\CMS\Uri\Uri::getInstance()->getQuery()
-        ])),'/'));
+        $this->redirectToList();
+    }
+
+    public function updated($item)
+    {
+        $this->redirectToList();
     }
 
     public function destroyed($item){
+        $this->redirectToList();
+    }
+
+    protected function redirectToList()
+    {
+        $query = ['option' => Factory::getApplication()->input->get('option'), 'view' => $this->getName()];
+        foreach ($query as $k => $v) {
+            $query[$k] = $k . '=' . $v;
+        }
         Factory::getApplication()->redirect(trim(implode('?',array_filter([
             \Joomla\CMS\Uri\Uri::getInstance()->getPath(),
-            \Joomla\CMS\Uri\Uri::getInstance()->getQuery()
+            implode('&', array_values($query))
         ])),'/'));
     }
 }
