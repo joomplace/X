@@ -4,22 +4,22 @@ stages:
 before_script:
 - if git rev-parse "0.10.1^{tag}" >/dev/null 2>&1
   then
-  echo "Found 0.10.1"
+  echo "Found 0.10.1";
   else
-  echo "0.10.1 not found"
-  fi
+  echo "0.10.1 not found";
+  fi;
 - if git rev-parse "0.10.2^{tag}" >/dev/null 2>&1
   then
-  echo "Found 0.10.2"
+  echo "Found 0.10.2";
   else
-  echo "0.10.2 not found"
-  fi
+  echo "0.10.2 not found";
+  fi;
 - if git rev-parse "0.10.3^{tag}" >/dev/null 2>&1
   then
-  echo "Found 0.10.3"
+  echo "Found 0.10.3";
   else
-  echo "0.10.3 not found"
-  fi
+  echo "0.10.3 not found";
+  fi;
 
 release:
 #  only:
