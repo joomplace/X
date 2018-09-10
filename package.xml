@@ -11,6 +11,6 @@
     <version>0.10.1</version>
     <files folder="packages">
         <file type="library" id="library">library.zip</file>
-        <file type="plugin" src="https://github.com/joomplace/Xautoloader/archive/1.0.0.zip" id="autoloader" group="system">plg_autoloader.zip</file>
+        <file type="plugin" src="https://github.com/joomplace/Xautoloader/archive/1.0.1.zip" id="autoloader" group="system">plg_autoloader.zip</file>
     </files>
 </extension>
