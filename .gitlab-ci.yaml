@@ -2,14 +2,17 @@ stages:
 - build
 
 release:
-  only:
-  - tags
+#  only:
+#  - tags
   stage: build
   image: edbizarro/gitlab-ci-pipeline-php:7.0
   tags:
     - docker
     - gce
   script:
+  - ls -la
+  - ls -la ./git
+  - ls -la ./git/
   - sudo apt-get update && sudo apt-get install -y zip wget
   - mkdir -p library && mkdir -p packages
   - composer install
