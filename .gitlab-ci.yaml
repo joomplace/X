@@ -31,6 +31,8 @@ release:
     - gce
   script:
   - sudo apt-get update && sudo apt-get install -y zip wget
+  # set remote for further local/dist use
+  - git remote set-url origin git@github.com:joomplace/X.git
   - mkdir -p library && mkdir -p packages
   - composer install
   - grep -E -o '<filename>(.*?)</filename>' ./manifest.xml
