@@ -22,7 +22,7 @@ trait Restful
 {
     use Injector;
 
-    public function execute($task){
+    public function execute($task=NULL){
         $method = strtoupper($this->injectArg('httpxmethod',$_SERVER['REQUEST_METHOD']));
         $methodMap = [
             'store'=>'POST',
