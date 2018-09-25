@@ -84,7 +84,7 @@ class Controller extends BaseController
         if(!$name){
             $name = $this->name;
         }
-        $client = $client ?: ucfirst($this->app->getName());
+        $client = ucfirst($this->app->getName());
         if($client == 'Administrator'){
             $client = 'Admin';
         }
@@ -105,7 +105,7 @@ class Controller extends BaseController
         $type = $document->getType();
 
 
-        $client = $client ?: ucfirst($this->app->getName());
+        $client = ucfirst($this->app->getName());
         if($client == 'Administrator'){
             $client = 'Admin';
         }
