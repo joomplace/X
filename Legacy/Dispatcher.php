@@ -26,7 +26,7 @@ class Dispatcher
         $namespace = rtrim(static::$namespace, '\\') . '\\';
 
         // Set up the client
-        $client = $client ?: ucfirst(Factory::getApplication()->getName());
+        $client = ucfirst(Factory::getApplication()->getName());
         if($client == 'Administrator'){
             $client = 'Admin';
         }
