@@ -87,7 +87,7 @@ class Controller extends BaseController
             $config['base_path'] = $this->basePath;
         }
         $document = \JFactory::getDocument();
-        $type = $document->getType();
+        $type = $type ? $type : $document->getType();
 
         $viewClass = $this->_namespace . ucfirst($this->app->getName()) . '\\View' .
             ($prefix ? '\\' . ucfirst($prefix) : '') . '\\'. ucfirst($name) .
