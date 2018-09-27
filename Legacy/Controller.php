@@ -102,7 +102,7 @@ class Controller extends BaseController
             $config['base_path'] = $this->basePath;
         }
         $document = \JFactory::getDocument();
-        $type = $document->getType();
+        $type = $type ? $type : $document->getType();
 
 
         $client = $client ?: ucfirst($this->app->getName());
