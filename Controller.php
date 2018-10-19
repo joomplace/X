@@ -1,5 +1,6 @@
 <?php
 /**
+// trigger CI
  * Copyright (c) 2018. Alexandr Kosarev, @kosarev.by
  */
 
