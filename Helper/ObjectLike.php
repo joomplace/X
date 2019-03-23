@@ -6,7 +6,7 @@
 namespace Joomplace\X\Helper;
 
 
-trait Object
+trait ObjectLike
 {
     function getProperties($public = true)
     {
