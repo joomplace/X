@@ -59,6 +59,7 @@ class Loader
                     break;
             }
 
+            $prefix = $config->get('dbprefix');
             $capsule->addConnection(array(
                 'driver' => $dbtype,
                 'host' => $config->get('host'),
@@ -67,15 +68,35 @@ class Loader
                 'password' => $config->get('password'),
                 'charset' => 'utf8',
                 'collation' => 'utf8_unicode_ci',
-                'prefix' => $config->get('dbprefix')
+                'prefix' => $prefix
             ));
             $dispatcher = new EloquentDispatcher(new Container);
 
             $capsule->setEventDispatcher($dispatcher);
 
+            if($config->get('debug',0)){
+                $capsule->getConnection()->enableQueryLog();
+                \PlgSystemDebug::addDisplayCallback('Eloquent', function () use ($capsule, $prefix) {
+                    $log = $capsule->getConnection()->getQueryLog();
+                    foreach ($log as $index => $query){
+                        ob_start();
+                        include 'layouts'.DIRECTORY_SEPARATOR.'debug'.DIRECTORY_SEPARATOR.'debug_query.html.php';
+                        $html[] = ob_get_contents();
+                        ob_end_clean();
+                    }
+                    return implode("\n<hr/>\n",$html);
+                });
+            }
+
             $capsule->bootEloquent();
             $capsule->setAsGlobal();
             $booted = true;
+
+//            $capsule->getConnection()->listen(function ($sql){
+//                echo "<pre>";
+//                print_r($sql);
+//                echo "</pre>";
+//            });
         }
     }
 
