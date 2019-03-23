@@ -16,7 +16,6 @@ class Loader
     protected function __construct()
     {
         require_once __DIR__ . '/vendor/autoload.php';
-        \JLoader::registerNamespace(__NAMESPACE__, __DIR__, false, false, 'psr4');
         self::registerPsr4Autoloader();
         if(version_compare(JVERSION,'4.0.0') < 0){
             class_alias(Legacy\Dispatcher::class,'\\Joomplace\\X\\Dispatcher');
