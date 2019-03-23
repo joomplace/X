@@ -6,13 +6,13 @@
 namespace Joomplace\X;
 
 use \Joomla\CMS\MVC\View\HtmlView;
-use Joomplace\X\Helper\Object;
+use Joomplace\X\Helper\ObjectLike;
 use \Joomplace\X\Renderer\PlainPHP as JoomlaEngine;
 use \Joomplace\X\Renderer\Edge as EdgeEngine;
 
 class View extends HtmlView
 {
-    use Object;
+    use ObjectLike;
     use EdgeEngine;
 
     public function __construct(array $config = array())
